@@ -2,10 +2,8 @@
 # Zulip-coffeebot
 Currently this bot runs on a cold VM. If you'd like to install this on your zulip instance, probably follow https://zulip.readthedocs.io/en/latest/bots-guide.html
 
-
-
 # Spec
-This section documents how the Coffeebot behaves. 
+This section documents how the Coffeebot behaves. Why a spec? See [Joel Spolsky's four part series](https://www.joelonsoftware.com/2000/10/02/painless-functional-specifications-part-1-why-bother/).
 
 ## Overview
 
@@ -16,6 +14,8 @@ Users can interact with coffeebot in the following ways.
 - `@Coffeebot yes` - Join a forming collective
 - `@Coffeebot no` - Withdraw from a forming collective
 - `@Coffeebot ping` - Ping all those in the collective. Only the maker may do this.
+
+A collective is a group of people who want coffee. Once a collective is formed, Coffeebot will designate a maker. That maker makes the coffee for the collective. Then once the coffee is made, the maker simply types `@Coffeebot ping` to alert others their coffee is ready. Everyone rejoices.
 
 Please see the [functional details section](#functional-details) for more.
 
@@ -48,28 +48,36 @@ _Note:_ Coffeebot is not currently implemented. Rather than say words like "Coff
 A collective is a group of people tied to a Zulip thread, with a leader. They can be in two states: open or closed. When a collective is open, it can add users to itself, or drop them, on request. It takes in these requests from a queue that coffeebot pushes into, to prevent any weird intermediate state. Collectives are class based, with the following methods:
 
 - constructor
+
 Requires a leader, optionally a max-size and timeout (in minutes).
 
 - close
+
 Closes the collective off to new users. Closing the same collective twice raises ValueError.
 
 - add_user 
+
 Adds user to the collective if it is not closed. Raises KeyError otherwise.
 
 - drop_user
+
 Removes user to the collective if it is not closed. Raises KeyError otherwise.
 
 - read_queue
+
 Interface for coffeebot to place events into. Every action is preceded by reading exactly one element, called a Directive, from the queue. Directives are simply namedtuples, that have command and arguments (possibly none).
 
 - dispatch
+
 Takes a directive. From there it'll dispatch on the command attribute, passing arguments to the whatever command gets mapped.
 
 - attempt_queue
+
 Check if the collective is closed. 
 Check the queue for events. If there is anything in the queue, pop it off, apply dispatch on it. 
 
 - \_\_len__
+
 Returns the number of users in the collective.
 
 
