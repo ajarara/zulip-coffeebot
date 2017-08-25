@@ -19,4 +19,7 @@ setup(
         ],
     keywords='zulip coffee',
     packages=find_packages(exclude=['tests']),
-    install_requires=['asyncio'])
+    extras_require={
+        'test': ['pytest'],
+    },
+    requires=['asyncio'])
