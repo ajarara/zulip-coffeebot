@@ -37,3 +37,34 @@ After the coffee is made, the maker may ping all those who are in the collective
 
 At any point in this event loop, anyone in a collective or otherwise may message `@Coffeebot love` or `I love you @Coffeebot` for a random reciprocating emoji. Coffeebot appreciates your gratitude.
 
+
+## Technical details
+
+The below is a working draft. I wouldn't bother reading it in its current state.
+
+_Note:_ Coffeebot is not currently implemented. Rather than say words like "Coffeebot would do so and so" I'm just going to pretend it's already implemented and describe its behavior in words like "Coffeebot does so and so", and then simply delete this line when that is the case. The idea is to flesh out a complete but minimal technical spec. Afterwards, any desired functionality would use the future tense like normal.
+
+### Collectives
+A collective is a group of people tied to a Zulip thread, with a leader. They can be in two states: open or closed. When a collective is open, it can add users to itself, or drop them, on request. It takes in these requests from a queue that coffeebot pushes into, to prevent any weird abnormal state. 
+
+### State
+Coffeebot internally keeps track of all collectives for the past 2 hours, unless it has been restarted within that time. It needs this to facilitate pinging.
+
+
+Coffeebot uses Zulip's API to listen in on a list of streams, defined in the Coffeebot constructor. When Coffeebot is mentioned, it'll attempt to parse for these keywords in the message that mentioned it:
+
+
+
+### Anteceding
+#### init
+Calls the init_new_coll method on Coffeebot. If a collective is currently
+
+
+
+
+### Preceding
+``` python3
+""
+
+
+
