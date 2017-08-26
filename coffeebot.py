@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 
 
 Directive = namedtuple('Directive', ['command', 'args'])
+# type: (str, dict) -> Directive
 
 
 class Collective():
@@ -48,6 +49,13 @@ class Collective():
 
 
 class Coffeebot():
+    """
+    Coffeebot's job is to take in requests from the API, attempt to
+    execute them in the correct collective, If the collective emanates
+    an error, present it reasonably to the thing initiating the request.
+
+    
+    """
     def __init__(self):
         self.collectives = deque()
 
