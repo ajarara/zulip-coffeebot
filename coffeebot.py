@@ -2,8 +2,6 @@ import zulip
 from collections import deque, namedtuple
 from datetime import datetime, timedelta
 
-# external dependencies
-# import asyncio
 
 Directive = namedtuple('Directive', ['command', 'args'])
 

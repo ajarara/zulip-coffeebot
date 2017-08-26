@@ -33,7 +33,7 @@ Once either of these conditions occur a few things will happen:
 - One member of the collective will be randomly chosen to make coffee. Coffeebot will notify all users of the collective who this member is. It is this person's responsibility to make coffee. Coffeebot will not physically enforce coffee creation for all foreseeable versions. This may change.
 
 
-After the coffee is made, the maker may ping all those who are in the collective they are in with `@coffeebot ping`, within 2 hours. Only the maker can perform this ping (there is nothing stopping anyone anywhere from pinging manually). In the case that the maker has been the maker of a previous collective that occurred within the last two hours, Coffeebot will ping all those that are in the most recent.
+After the coffee is made, the maker may ping all those who are in the collective they are in with `@coffeebot ping`, within 2 hours. Only the maker can perform this ping (there is nothing stopping anyone anywhere from pinging manually). This is to make the responsibility concrete. In the case that the maker has been the maker of a previous collective that occurred within the last two hours, Coffeebot will ping all those that are in the most recent.
 
 At any point in this event loop, anyone in a collective or otherwise may message `@Coffeebot love` or `I love you @Coffeebot` for a random reciprocating emoji. Coffeebot appreciates your gratitude.
 
@@ -43,6 +43,7 @@ At any point in this event loop, anyone in a collective or otherwise may message
 The below is a working draft. I wouldn't bother reading it in its current state.
 
 _Note:_ Coffeebot is not currently implemented. Rather than say words like "Coffeebot would do so and so" I'm just going to pretend it's already implemented and describe its behavior in words like "Coffeebot does so and so", and then simply delete this line when that is the case. The idea is to flesh out a complete but minimal technical spec. Afterwards, any desired functionality would use the future tense like normal.
+
 
 ### Collectives
 A collective is a group of people tied to a Zulip thread, with a leader. They can be in two states: open or closed. When a collective is open, it can add users to itself, or drop them, on request. It takes in these requests from a queue that coffeebot pushes into, to prevent any weird intermediate state. Collectives are class based, with the following methods:
@@ -69,12 +70,26 @@ Interface for coffeebot to place events into. Every action is preceded by readin
 
 - dispatch
 
-Takes a directive. From there it'll dispatch on the command attribute, passing arguments to the whatever command gets mapped.
+Takes a Directive and dispatch on the command attribute. Pass arguments to whatever the command gets mapped to.
 
 - attempt_queue
 
-Check if the collective is closed. 
-Check the queue for events. If there is anything in the queue, pop it off, apply dispatch on it. 
+Check if the collective is closed. If it's not closed, check if it should be.
+Check the queue for events. If there is anything in the queue, pop it off, apply dispatch on it.
+
+- should_close
+
+As of now: check if the collective is stale (time remaining on the timeout), check if the collective is full. Return either of these.
+
+- is_stale
+
+Just checks timeout. This method probably errs on too much separation.
+
+- is_full
+
+Checks if the size of the collective exceeds max_size (default 5).
+
+- Completely irrelevant:
 
 - \_\_len__
 
@@ -84,12 +99,3 @@ Returns the number of users in the collective.
 
 ### Command - Function mapping
 Coffeebot uses Zulip's API to listen in on a list of streams, defined in the Coffeebot constructor. When Coffeebot is mentioned, it'll attempt to parse for these keywords in the message that mentioned it:
-
-
-
-
-
-
-
-
-
