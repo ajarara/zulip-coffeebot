@@ -13,7 +13,7 @@ class Collective():
         self.leader = leader
         self.stream = stream
         self.max_size = max_size
-        self.timeout_in_mins = timeout_in_mins
+        self.timeout_in_mins = timedelta(minutes=timeout_in_mins)
         self.time_created = datetime.now()
 
         # self mutable attributes
@@ -42,24 +42,11 @@ class Collective():
         else:
             raise ValueError("{} is not in the collective!".format(user))
 
+    def is_stale(self):
+        return datetime.now() - self.time_created >= self.timeout_in_mins
+
     def __len__(self):
         return len(self.users)
-
-    def dispatch(self, directive):
-        """
-        Take a directive, map it to a function, execute it. Do no error checks.
-        """
-        func = {
-            "add": self.add,
-            "remove": self.remove,
-            "close": self.close,
-        }[directive.command]
-
-        if directive.args:
-            func(directive.args)
-        else:
-            func()
-
 
 class Coffeebot():
     """

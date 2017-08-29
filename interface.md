@@ -1,8 +1,30 @@
 # Another attempt
 Instead of defining collectives and having their design meet the interface design with the coffeebot as an intermediary, instead I'll define the interface and enumerate all the exceptional events and handle those from coffeebot's perspective.
 
+Trying to organize the details is proving to be difficult, even with a simple toybot. Accomodating for extension is difficult. Software is hard. Accomodating for feature sets is hard.
+
+## Overview
+
+This bot unites people within a zulip organization in physical proximity with beloved coffee in an efficient, low maintenance way. Coffeebot organizes collectives, providing an interface for those who want coffee and delegates a coffee maker for the collective randomly. 
+
+Users can interact with coffeebot in the following ways.
+- `@Coffeebot init` - Initialize a collective
+- `@Coffeebot yes` - Join a forming collective
+- `@Coffeebot no` - Withdraw from a forming collective
+- `@Coffeebot ping` - Ping all those in the collective. Only the maker may do this.
+
+A collective is a group of people who want coffee. Once a collective is formed, Coffeebot will designate a maker. That maker makes the coffee for the collective. Then once the coffee is made, the maker simply types `@Coffeebot ping` to alert others their coffee is ready. Everyone rejoices.
+
+
 ## Philosophy
-Coffeebot should be as quiet as possible, using emoji to signify confirmation and state to the user, only responding during exceptional events. If coffeebot was PM'd, Coffeebot will only update the collective count, not by sending a new message, but by decrementing the count using the :three, two, one: emotes. The only problem is that users might click on these emotes and make keeping track confusing... that's a significant problem I think. Maybe instead only post when the collective is about to be closed.. maybe silent collectives are more trouble then they are worth. Perhaps try to accomodate for it, but that's difficult without writing about it.
+Coffeebot should be as quiet as possible, using emoji to signify confirmation and state to the user, only posting a message during exceptional events. In the case where Coffeebot can't reply via Emoji, it'll send a message 
+
+Coffeebot should be lax in what it accepts from the user, providing for a convenient map from text English to modifications of state. The map should be easily modifiable.
+
+
+
+
+If coffeebot was PM'd, Coffeebot will only update the collective count, not by sending a new message, but by decrementing the count using the :three, two, one: emotes. The only problem is that users might click on these emotes and make keeping track confusing... that's a significant problem I think. Maybe instead only post when the collective is about to be closed.. maybe silent collectives are more trouble then they are worth. Perhaps try to accomodate for it.
 
 All commands could also specify keywords, like collective or timeout. The interface could be:
 :collective 12
