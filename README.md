@@ -99,3 +99,4 @@ Returns the number of users in the collective.
 
 ### Command - Function mapping
 Coffeebot uses Zulip's API to listen in on a list of streams, defined in the Coffeebot constructor. When Coffeebot is mentioned, it'll attempt to parse for these keywords in the message that mentioned it:
+

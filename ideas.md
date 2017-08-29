@@ -26,6 +26,16 @@ Python has a mantra of EAFP: It's Easier to Ask Forgiveness than Permission.
 
 Not sure if I agree with it, but the mantra indicates to simply pass along all directives to a collective and have it throw errors as needed.
 
-An alternative is to have the error handling inside Coffeebot. Not sure that's the best idea, Coffeebot has exceptional cases of its own.
+An alternative is to have the error handling inside Coffeebot. Not sure that's the best idea, Coffeebot has exceptional cases of its own. 
 
 Leaning towards EAFP, even though it bothers me.
+
+Having collectives do error handling means that there's a layer of separation between the error and the user. But all Coffeebot really can do is unwrap the args to the error and pass that along.
+
+# Who dispatches?
+
+Each directive must be answered. It's pretty clear it's coffeebot's job to deconstruct the command and push it into a directive.
+
+I think this problem is difficult because directives are the natural thing to put into an event queue. Should each collective have its own event queue? Or should coffeebot immediately..
+
+coffeebot needs the queue because collectives emanate errors. The utmost priority is to not miss an event. Probably need to dive into the Zulip API again to see how events are stored. If the client needs to be listening then that is an issue.
