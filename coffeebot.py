@@ -1,27 +1,47 @@
-import zulip
 from collections import deque, namedtuple
 from datetime import datetime, timedelta
+from random import sample
+from os import path
 
+# external dep
+import zulip
 
 Directive = namedtuple('Directive', ['command', 'args'])
 # type: (str, dict) -> Directive
 
 
+def parse(message):
+    """
+    Provided a message, deconstruct it into a directive with arguments.
+
+    This is a complicated function. We'd like to support @coffeebot
+    """
+    pass
+
+
+# this is out here so that collectives have no notion of Zulip. This
+# way collectives can be used without inheritance.
+
+
 class Collective():
-    def __init__(self, leader, stream, max_size=5, timeout_in_mins=15):
+    def __init__(self, leader, topic, max_size=5, timeout_in_mins=15):
         # TODO: Check max_size and timeout_in_mins for reasonable values
         self.leader = leader
-        self.stream = stream
+        self.topic = topic
         self.max_size = max_size
+
         self.timeout_in_mins = timedelta(minutes=timeout_in_mins)
         self.time_created = datetime.now()
 
         # self mutable attributes
         self.users = {leader}
         self.closed = False
+        self.maker = None
 
     def close(self):
         if not self.closed:
+            if self.users:  # so that we can close an empty coll
+                self.elect_maker()
             self.closed = True
         else:
             raise ValueError("This collective has already been closed.")
@@ -42,26 +62,104 @@ class Collective():
         else:
             raise ValueError("{} is not in the collective!".format(user))
 
+    def elect_maker(self):
+        if not self.maker:
+            self.maker = sample(self.users, 1)
+        else:
+            raise ValueError("Maker has already been elected!")
+
     def is_stale(self):
+        # this is going to be mocked, waiting 15 minutes for tests to pass
+        # is ridiculous, so this should be as simple as possible.
         return datetime.now() - self.time_created >= self.timeout_in_mins
+
+    def ping_string(self):
+        """
+        This is the only method that is Zulip aware. The alternative
+        is to move this out to Coffeebot which isolates the zulip
+        awareness to coffeebot (where it can't be avoided) but
+        requires that coffeebot reach into Collectives to act on them.
+
+        Which is less bad is a question I've spent too much time on.
+        """
+        return " ".join(
+            ["@{}".format(user) for user in self.users])
+
+    def dispatch(self, directive):
+        """
+        Take a directive, map it to a function, execute it. Do no error checks.
+        """
+        func = {
+            "add": self.add,
+            "remove": self.remove,
+            "close": self.close,
+        }[directive.command]
+
+        if directive.args:
+            func(directive.args)
+        else:
+            func()
 
     def __len__(self):
         return len(self.users)
 
+
 class Coffeebot():
     """
     Coffeebot's job is to take in requests from the API, attempt to
-    execute them in the correct collective, If the collective emanates
-    an error, present it reasonably to the thing initiating the request.
+    execute them in the correct collective. It's coffeebot's job to handle
+    exceptional cases like parsing, but the collective's job to notify
+    coffeebot about things like adding a user to full collective.
     """
-    def __init__(self):
-        self.collectives = deque()
+    def __init__(self, stream):
+        here = path.abspath(path.dirname(__file__))
+        self.client = zulip.Client(
+            config_file=path.join(here, "zuliprc.conf"))
 
-    def parse(self, message):
-        pass
+        self.curr_collective = None
+        self.old_collective = None
+
+    def archive_collective(self):
+        self.old_collective = self.curr_collective
+        self.curr_collective = None
+        # closing the collective elects a maker
+        self.old_collective.close()
+
+    def handle_heartbeat(self, event):
+        # this is a good opportunity to check if we should close our
+        # current collective. Heartbeats are in the v1 API. If this
+        # ends up breaking (or heartbeats prove too slow) an
+        # alternative implementation is to write a client that listens
+        # until a timeout.  or request that the client lib support
+        # timeouts. Either works.
+        if self.curr_collective and self.curr_collective.is_stale():
+            # the collective has timed out. archive it
+            self.archive_collective()
+
+            # alert the collective who the maker is.
+            self.client.send_message({
+                "type": "stream",
+                "to": self.stream,
+                "subject": self.old_collective.topic,
+                "content": (
+                    "{}\nCoffeebot is impatient and has closed this "
+                    "collective! The maker coffeebot has chosen is {}").format(
+                        ping_string(self.old_collective),
+                        self.old_collective.maker)})
+
+
+    def dispatch_event(self, event):
+        print(event)
 
     def listen(self):
-        pass
+        self.client.call_on_each_event(self.dispatch_event)
 
-    def handle(self, message):
-        pass
+
+def main():
+    if zulip.API_VERSTRING != "v1/":
+        print("Zulip API client library has changed remote version! Aborting.")
+        exit(1)
+
+
+if __name__ == '__main__':
+    main()
