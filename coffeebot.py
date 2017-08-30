@@ -12,8 +12,10 @@ Directive = namedtuple('Directive', ['command', 'args'])
 
 # a map of regular expressions, all mapped to directives
 # we put it in an ordered dict so that we have determinism
-# when iterating over it. this means we don't have to worry about
+# when iterating over it. This means we don't have to worry about
 # making our regular expressions mutually exclusive.
+# I don't need constant time access (really only need a linked list)
+# but there's no reason to clutter this code with an implementation.
 _COMMAND_REG_MAP = OrderedDict({
     'init': (
         r"@coffeebot init",
@@ -73,29 +75,11 @@ def _generate_parse_map(
     return _parse_cache[0]
 
 
-def parse(event, parse_map=_generate_parse_map()):
-    """
-    Provided a message, deconstruct it into a directive with arguments.
-
-    For now all we need is the name, which isn't available in the
-    message string but is available in the event.. I hope.
-    
-
-    @coffeebot
-    """
-    for reg, command in parse_map:
-        # TODO
-        pass
-
-
-# this is out here so that collectives have no notion of Zulip. This
-# way collectives can be used without inheritance.
-
-
 class Collective():
-    def __init__(self, leader, topic, max_size=5, timeout_in_mins=15):
+    def __init__(self, leader, stream, topic, max_size=5, timeout_in_mins=15):
         # TODO: Check max_size and timeout_in_mins for reasonable values
         self.leader = leader
+        self.stream = stream
         self.topic = topic
         self.max_size = max_size
 
@@ -143,9 +127,10 @@ class Collective():
         # is ridiculous, so this should be as simple as possible.
         return datetime.now() - self.time_created >= self.timeout_in_mins
 
+    # ---------- zulip aware/specific functions ----------
     def ping_string(self):
         """
-        This is the only method that is Zulip aware. The alternative
+        This is a method that is Zulip aware. The alternative
         is to move this out to Coffeebot which isolates the zulip
         awareness to coffeebot (where it can't be avoided) but
         requires that coffeebot reach into Collectives to act on them.
@@ -154,6 +139,25 @@ class Collective():
         """
         return " ".join(
             ["@{}".format(user) for user in self.users])
+
+    def timeout_message(self):
+        """
+        Not a string, but a dict detailing the contents of the message
+        and what to send.
+        """
+        assert self.closed, ("Timeout message retrieved "
+                             "without closing collective!")
+        return {
+            "type": "stream",
+            "to": self.stream,
+            "subject": self.topic,
+            "content": (
+                "Coffeebot is impatient and has closed this collective!"
+                "The maker coffeebot has chosen is {}\n{}").format(
+                    self.maker,
+                    self.ping_string(),
+                )
+        }
 
     def dispatch(self, directive):
         """
@@ -203,20 +207,12 @@ class Coffeebot():
         # until a timeout.  or request that the client lib support
         # timeouts. Either works.
         if self.curr_collective and self.curr_collective.is_stale():
-            # the collective has timed out. archive it
+            # the collective has timed out. archive it (which closes it)
             self.archive_collective()
 
             # alert the collective who the maker is.
-            self.client.send_message({
-                "type": "stream",
-                "to": self.stream,
-                "subject": self.old_collective.topic,
-                "content": (
-                    "{}\nCoffeebot is impatient and has closed this "
-                    "collective! The maker coffeebot has chosen is {}").format(
-                        ping_string(self.old_collective),
-                        self.old_collective.maker)})
-
+            self.client.send_message(
+                self.old_collective.timeout_message())
 
     def dispatch_event(self, event):
         print(event)
