@@ -1,7 +1,8 @@
-from collections import deque, namedtuple
+from collections import OrderedDict, namedtuple
 from datetime import datetime, timedelta
 from random import sample
 from os import path
+import re
 
 # external dep
 import zulip
@@ -9,14 +10,82 @@ import zulip
 Directive = namedtuple('Directive', ['command', 'args'])
 # type: (str, dict) -> Directive
 
+# a map of regular expressions, all mapped to directives
+# we put it in an ordered dict so that we have determinism
+# when iterating over it. this means we don't have to worry about
+# making our regular expressions mutually exclusive.
+_COMMAND_REG_MAP = OrderedDict({
+    'init': (
+        r"@coffeebot init",
+        r"@coffeebot start",
+        r"@coffeebot coffee",
+    ),
+    'add': (
+        r"@coffeebot yes",
+        r"@coffeebot join",
+        r"@coffeebot in",
+    ),
+    'remove': (
+        r"@coffeebot leave",
+        r"@coffeebot no",
+        r"@coffeebot out",
+    ),
+    'close': (
+        r"@coffeebot done",
+        r"@coffeebot close",
+        r"@coffeebot stop",
+    ),
+    'love': (
+        r"@coffeebot love",
+        r"i love you @coffeebot",
+    ),
+})
 
-def parse(message):
+
+def _reg_wrap(regex, fmt=".*[^`'\"]{}[^`'\"].*"):
+    """Wrap a regex in another, using fmt. Default makes it so
+    that any regex quoted does not summon coffeebot """
+    return re.compile(fmt.format(regex))
+
+
+_PARSE_CACHE = []
+
+
+def _generate_parse_map(
+        _command_reg_map=_COMMAND_REG_MAP,
+        _parse_cache=_PARSE_CACHE):
+    """
+    Access the parse map. This is a tuple of 2-tuples: regular
+    expressions mapped to their commands, to be tried in order. Since
+    the reg_map is ordered the result we obtain from this call is
+    deterministic, so we cache it in _parse_cache. The first time we
+    must generate it.
+    """
+    if not _parse_cache:
+        out = []
+        for command, raw_reg_tup in _command_reg_map.items():
+            for raw_reg in raw_reg_tup:
+                out.append(
+                    # wrap the regex in a format and assoc it with command
+                    (_reg_wrap(raw_reg), command))
+        _parse_cache.append(out)
+
+    return _parse_cache[0]
+
+
+def parse(event, parse_map=_generate_parse_map()):
     """
     Provided a message, deconstruct it into a directive with arguments.
 
-    This is a complicated function. We'd like to support @coffeebot
+    For now all we need is the name, which isn't available in the
+    message string but is available in the event.. I hope.
+    
+
+    @coffeebot
     """
-    pass
+    for reg, command in parse_map:
+        # TODO
+        pass
 
 
 # this is out here so that collectives have no notion of Zulip. This
@@ -30,6 +99,7 @@ class Collective():
         self.topic = topic
         self.max_size = max_size
 
+        # time invariants
         self.timeout_in_mins = timedelta(minutes=timeout_in_mins)
         self.time_created = datetime.now()
 
