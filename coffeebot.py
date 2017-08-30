@@ -138,7 +138,7 @@ class Collective():
         Which is less bad is a question I've spent too much time on.
         """
         return " ".join(
-            ["@{}".format(user) for user in self.users])
+            ["@**{}**".format(user) for user in self.users])
 
     def timeout_message(self):
         """
@@ -185,10 +185,10 @@ class Coffeebot():
     exceptional cases like parsing, but the collective's job to notify
     coffeebot about things like adding a user to full collective.
     """
-    def __init__(self, stream):
+    def __init__(self, stream, config_file="zuliprc.conf"):
         here = path.abspath(path.dirname(__file__))
         self.client = zulip.Client(
-            config_file=path.join(here, "zuliprc.conf"))
+            config_file=path.join(here, config_file))
 
         self.curr_collective = None
         self.old_collective = None
@@ -199,7 +199,8 @@ class Coffeebot():
         # closing the collective elects a maker
         self.old_collective.close()
 
-    def handle_heartbeat(self, event):
+    # hmm so maybe this is the wrong way to go about this.
+    def handle_heartbeat(self):
         # this is a good opportunity to check if we should close our
         # current collective. Heartbeats are in the v1 API. If this
         # ends up breaking (or heartbeats prove too slow) an
@@ -214,11 +215,31 @@ class Coffeebot():
             self.client.send_message(
                 self.old_collective.timeout_message())
 
+    def handle_private_message(self, event):
+        self.client.send_message({
+            "type": "private",
+            "to": event.sender_email,
+            "content": ("I don't do insider coffee making. "
+                        # publically? I never know.
+                        "Ping me publicly.")
+            })
+
     def dispatch_event(self, event):
-        print(event)
+        if event['type'] == 'heartbeat':
+            self.handle_heartbeat()
+        elif event['type'] == 'private':
+            self.handle_private_message(event)
+        elif event['type'] == 'message':
+            pass
 
     def listen(self):
-        self.client.call_on_each_event(self.dispatch_event)
+        # figure out if messages mean pings as
+        # well. call_on_each_event doesn't work how I'd like it to
+        # it seems that that is the case.
+        # instead listen in on ['heartbeat', 'private']
+        self.client.call_on_each_event(
+            self.dispatch_event,
+            event_types=['heartbeat', 'private'])
 
 
 def main():
