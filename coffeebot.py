@@ -130,10 +130,11 @@ class Collective():
     # ---------- zulip aware/specific functions ----------
     def ping_string(self):
         """
-        This is a method that is Zulip aware. The alternative
-        is to move this out to Coffeebot which isolates the zulip
-        awareness to coffeebot (where it can't be avoided) but
-        requires that coffeebot reach into Collectives to act on them.
+        Not the biggest fan of Zulip aware collective methods. The
+        alternative is to move this out to Coffeebot which isolates
+        the zulip awareness to coffeebot (where it can't be avoided)
+        but requires that coffeebot reach into Collectives to act on
+        them.
 
         Which is less bad is a question I've spent too much time on.
         """
@@ -220,11 +221,12 @@ class Coffeebot():
             "type": "private",
             "to": event.sender_email,
             "content": ("I don't do insider coffee making. "
-                        # publically? I never know.
+                        # publically? I always have to check.
                         "Ping me publicly.")
             })
 
     def dispatch_event(self, event):
+        case = event['type']
         if event['type'] == 'heartbeat':
             self.handle_heartbeat()
         elif event['type'] == 'private':
@@ -235,11 +237,11 @@ class Coffeebot():
     def listen(self):
         # figure out if messages mean pings as
         # well. call_on_each_event doesn't work how I'd like it to
-        # it seems that that is the case.
         # instead listen in on ['heartbeat', 'private']
+        # OH. It's 'message'! Silly me.
         self.client.call_on_each_event(
             self.dispatch_event,
-            event_types=['heartbeat', 'private'])
+            event_types=[])
 
 
 def main():
