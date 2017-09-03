@@ -185,12 +185,26 @@ class Coffeebot():
     execute them in the correct collective. It's coffeebot's job to handle
     exceptional cases like parsing, but the collective's job to notify
     coffeebot about things like adding a user to full collective.
+    
+    A design goal that is kind of broken here is to have as little
+    logic as possible inside of coffeebot. Since we're interfacing
+    directly with an API, most actions are stateful, which makes
+    testing this logic a little more involved then testing something
+    like a collective.
     """
     def __init__(self, stream, config_file="zuliprc.conf"):
         here = path.abspath(path.dirname(__file__))
+        # used by self.dispatch and self.listen. maps events to handlers
+        self.event_method_map = {
+            'heartbeat': self.handle_heartbeat,
+            'private': self.handle_private_message,
+            'message': self.handle_public_message,
+        }
+
         self.client = zulip.Client(
             config_file=path.join(here, config_file))
 
+        # mutable attributes
         self.curr_collective = None
         self.old_collective = None
 
@@ -225,14 +239,13 @@ class Coffeebot():
                         "Ping me publicly.")
             })
 
+    def handle_public_message(self, event):
+        pass
+
     def dispatch_event(self, event):
-        case = event['type']
-        if event['type'] == 'heartbeat':
-            self.handle_heartbeat()
-        elif event['type'] == 'private':
-            self.handle_private_message(event)
-        elif event['type'] == 'message':
-            pass
+        switch = event['type']
+        # dispatch on switch, passing event to the method
+        self.event_method_map[switch](event)
 
     def listen(self):
         # figure out if messages mean pings as
@@ -241,7 +254,8 @@ class Coffeebot():
         # OH. It's 'message'! Silly me.
         self.client.call_on_each_event(
             self.dispatch_event,
-            event_types=[])
+            event_types=self.event_method_map.keys()
+        )
 
 
 def main():
