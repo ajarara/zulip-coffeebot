@@ -1,5 +1,5 @@
-from collections import OrderedDict, namedtuple
 from datetime import datetime, timedelta
+from collections import namedtuple
 from random import sample
 from os import path
 import re
@@ -10,38 +10,36 @@ import zulip
 Directive = namedtuple('Directive', ['command', 'args'])
 # type: (str, dict) -> Directive
 
-# a map of regular expressions, all mapped to directives
-# we put it in an ordered dict so that we have determinism
-# when iterating over it. This means we don't have to worry about
-# making our regular expressions mutually exclusive.
-# I don't need constant time access (really only need a linked list)
-# but there's no reason to clutter this code with an implementation.
-_COMMAND_REG_MAP = OrderedDict({
-    'init': (
+# an association tuple of directives to regular expressions.
+# this is used to build the inverse association list,
+# this isn't used beyond generating the parse cache
+
+_COMMAND_REGS = (
+    ('init', (
         r"@coffeebot init",
         r"@coffeebot start",
         r"@coffeebot coffee",
-    ),
-    'add': (
+    )),
+    ('add', (
         r"@coffeebot yes",
         r"@coffeebot join",
         r"@coffeebot in",
-    ),
-    'remove': (
+    )),
+    ('remove', (
         r"@coffeebot leave",
         r"@coffeebot no",
         r"@coffeebot out",
-    ),
-    'close': (
+    )),
+    ('close', (
         r"@coffeebot done",
         r"@coffeebot close",
         r"@coffeebot stop",
-    ),
-    'love': (
+    )),
+    ('love', (
         r"@coffeebot love",
         r"i love you @coffeebot",
-    ),
-})
+    )),
+)
 
 
 def _reg_wrap(regex, fmt=".*[^`'\"]{}[^`'\"].*"):
@@ -50,11 +48,13 @@ def _reg_wrap(regex, fmt=".*[^`'\"]{}[^`'\"].*"):
     return re.compile(fmt.format(regex))
 
 
+# this is populated by the below function. Don't think of it as a
+# list, think of it as a container.
 _PARSE_CACHE = []
 
 
 def _generate_parse_map(
-        _command_reg_map=_COMMAND_REG_MAP,
+        _command_regs=_COMMAND_REGS,
         _parse_cache=_PARSE_CACHE):
     """
     Access the parse map. This is a tuple of 2-tuples: regular
@@ -65,7 +65,7 @@ def _generate_parse_map(
     """
     if not _parse_cache:
         out = []
-        for command, raw_reg_tup in _command_reg_map.items():
+        for command, raw_reg_tup in _command_regs:
             for raw_reg in raw_reg_tup:
                 out.append(
                     # wrap the regex in a format and assoc it with command
