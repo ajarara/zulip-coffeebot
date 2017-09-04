@@ -42,7 +42,7 @@ _COMMAND_REGS = (
 )
 
 
-def _reg_wrap(regex, fmt=".*[^`'\"]{}[^`'\"].*"):
+def _reg_wrap(regex, fmt=r".*[^`'\"]{}[^`'\"].*"):
     """Wrap a regex in another, using fmt. Default makes it so
     that any regex quoted does not summon coffeebot """
     return re.compile(fmt.format(regex))
