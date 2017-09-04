@@ -74,6 +74,7 @@ def _generate_parse_map(
 
     return _parse_cache[0]
 
+class CoffeeError(ValueError): pass
 
 class Collective():
     def __init__(self, leader, stream, topic, max_size=5, timeout_in_mins=15):
@@ -98,7 +99,7 @@ class Collective():
                 self.elect_maker()
             self.closed = True
         else:
-            raise ValueError("This collective has already been closed.")
+            raise CoffeeError("This collective has already been closed.")
 
     def add(self, user):
         if not self.closed:
@@ -106,7 +107,7 @@ class Collective():
             if len(self) >= self.max_size:
                 self.close()
         else:
-            raise ValueError("This collective is closed.")
+            raise CoffeeError("This collective is closed.")
 
     def remove(self, user):
         if user in self.users:
@@ -114,13 +115,13 @@ class Collective():
                 self.leader = None  # :(
             self.users.remove(user)
         else:
-            raise ValueError("{} is not in the collective!".format(user))
+            raise CoffeeError("{} is not in the collective!".format(user))
 
     def elect_maker(self):
         if not self.maker:
             self.maker = sample(self.users, 1)
         else:
-            raise ValueError("Maker has already been elected!")
+            raise CoffeeError("Maker has already been elected!")
 
     def is_stale(self):
         # this is going to be mocked, waiting 15 minutes for tests to pass
@@ -240,6 +241,30 @@ class Coffeebot():
             })
 
     def handle_public_message(self, event):
+        """
+        TODO: Attempt to parse the message contents, if mentioned. If
+        nothing is found, send an error message, maybe tell user to PM
+        coffeebot? Otherwise,dispatch the directive on the current collective.
+
+        Hmm. If it's a ping then it should act on the closed
+        collective.
+
+        That's a little confusing, as it'll do this even if the user
+        does it in a different stream.  Maybe putting collectives in a
+        deque is a good idea. During heartbeats check for stale
+        collectives and collectives that are expired (beyond two
+        hours), closing the first and removing the second.
+
+        This could be done easily by putting all collectives in a
+        deque. For the second case, do something like while colls and
+        colls[0].is_moldy(): colls.leftpop
+
+        For the first, iterate backwards through the deque, attempting
+        to close all collectives that are stale until you hit a
+        CoffeeError.
+
+        This is certainly going to be the roughest part of coffeebot
+        """
         pass
 
     def dispatch_event(self, event):
