@@ -50,7 +50,7 @@ def _reg_wrap(regex, fmt=r".*[^`'\"]{}[^`'\"].*"):
 
 # this is populated by the below function. Don't think of it as a
 # list, think of it as a container.
-_PARSE_CACHE = []
+_PARSE_CACHE = {}
 
 
 def _get_parse_map(
@@ -64,22 +64,30 @@ def _get_parse_map(
     must generate it.
 
     Returns something like this:
-      ((re.compile('.*[^`'\"]@coffeebot init[^`'\"].*'), 'init')
+      ((re.compile('.*[^`'\"]@coffeebot init[^`'\"].*'), 'init'),
        (re.compile('.*[^`'\"]@coffeebot no[^`'\"].*'), 'remove')
        # etc.
       )
     """
-    if not _parse_cache:
+    if _command_regs not in _parse_cache:
         out = []
         for command, raw_reg_tup in _command_regs:
             for raw_reg in raw_reg_tup:
                 out.append(
                     # wrap the regex in a format and assoc it with command
                     (_reg_wrap(raw_reg), command))
-        _parse_cache.append(out)
+        _parse_cache[_command_regs] = out
 
-    return _parse_cache[0]
+    return _parse_cache[_command_regs]
 
+def parse(message):
+    "Given a message, return the first match obtained from _get_parse_map"
+    for reg, command in _get_parse_map():
+        if reg.match(message):
+            return command
+
+# I only catch CoffeeErrors. If theres a legit ValueError I'd like to
+# know about it in the logs
 class CoffeeError(ValueError): pass
 
 class Collective():
