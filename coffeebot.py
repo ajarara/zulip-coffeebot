@@ -112,6 +112,24 @@ def _parse(message):
 class CoffeeError(ValueError): pass  # noqa: E701
 
 
+# the only stream I want to interact with is #coffee, so we'll hard code this.
+# the alternative is to lookup the stream_id at message time which is
+# more complicated.
+COFFEEBOT_STREAM = ["#coffee"]
+
+
+# assumes event is a public message with a topic associated with it
+# returns a dict that can be fed into a zulip client send_message.
+# this makes it easy to change the hardcoded value later on.
+def _format_response(event, content):
+    return {
+        "type": "stream",
+        "to": COFFEEBOT_STREAM,
+        "subject": event['subject'],
+        "content": content,
+    }
+
+
 class Collective():
     def __init__(self, leader, stream, topic, max_size=5, timeout_in_mins=15):
         # TODO: Check max_size and timeout_in_mins for reasonable values
@@ -327,8 +345,29 @@ class Coffeebot():
 
         This is certainly going to be the roughest part of coffeebot.
         """
-        pass
-
+        # never reply to myself:
+        if not event['message']['is_me_message']:
+            if event['message']['is_mentioned']:
+                command = _parse(event['content'])
+                if command is None:
+                    # coffeebot doesn't recognize this string
+                    self.client.send_message(
+                        _format_response(
+                            event,
+                            ("I can't figure out what you mean.\n"
+                             "Private message me for help please.")
+                            )
+                    )
+                elif command in {'init', 'ping'}:
+                    pass
+                else:
+                    try:
+                        self.curr_collective.dispatch(command)
+                    except CoffeeError as e:
+                        self.client.send_message(
+                            _format_response(event,
+                                             e.args[0])
+                            )
 
     def _help_string(self):
         """
@@ -353,7 +392,7 @@ class Coffeebot():
         except RuntimeError as e:
             # relay that something went terribly wrong inside coffeebot
             # since we can't tell rn which one it was, just tell current_coll
-            self.send_message({
+            self.client.send_message({
                 "type": "stream",
                 "to": curr_collective.stream,
                 "subject": curr_collective.topic,

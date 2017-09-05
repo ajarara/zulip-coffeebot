@@ -128,5 +128,3 @@ def test_coffeebot_init():
     assert not coff.call_on_each_event
     assert coff.send_message_count == 1
 
-
-def test_coffeebot_
