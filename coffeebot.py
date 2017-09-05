@@ -237,7 +237,7 @@ class Coffeebot():
     execute them in the correct collective. It's coffeebot's job to handle
     exceptional cases like parsing, but the collective's job to notify
     coffeebot about things like adding a user to full collective.
-    
+
     A design goal that is kind of broken here is to have as little
     logic as possible inside of coffeebot. Since we're interfacing
     directly with an API, most actions are stateful, which makes

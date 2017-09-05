@@ -26,6 +26,8 @@ def test_coll_close():
     with pytest.raises(CoffeeError):
         # it bothers me a little bit that you have to take my word for it
         col.add("arbitrary")
+    # makers are selected randomly but this random event is prob 1.00 :)
+    assert col.maker == "user1"
 
 
 def test_coll_remove():
@@ -77,6 +79,8 @@ def test_parse():
     # whatever is encountered in command_regs first.
     assert _parse("@coffeebot yes @coffeebot no") == 'add'
     assert _parse("i love you @coffeebot") == 'love'
+    assert _parse(("Here's some conversation, but @coffeebot init it's"
+                   "only mildy relevant to this bot")) == 'init'
 
 
 def _quotifier(words):
@@ -97,8 +101,32 @@ def test_quoted_parse():
             assert _parse(quoted_phrase) is None
 
 
+# and here's where the test quality takes a nose dive, unfortunately.
+# this sounds like a good use case for fixtures.
+class Mock_Zulip_Client():
+
+    def __init__(self):
+        self.call_on_each_event_called = False
+        self.send_message_count = 0
+
+    def call_on_each_event(self, callback, event_types):
+        assert callable(callback)
+        assert isinstance(event_types, list)
+        self.call_on_each_event_called = True
+
+    def send_message(self, message_data):
+        assert isinstance(message_data, dict)
+        self.send_message_count += 1
+
 
 def test_coffeebot_init():
-    Coffeebot("#coffee")  # noqa
+    coff = Coffeebot("#coffee", config_file=None)
+    coff.client = Mock_Zulip_Client()
+
+    coff.dispatch_event({'type': 'heartbeat'})
+    assert not coff.curr_collective and not coff.old_collective
+    assert not coff.call_on_each_event
+    assert coff.send_message_count == 1
 
 
+def test_coffeebot_
