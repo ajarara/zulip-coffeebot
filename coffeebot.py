@@ -358,10 +358,30 @@ class Coffeebot():
                              "Private message me for help please.")
                             )
                     )
-                elif command in {'init', 'ping'}:
-                    pass
+                elif command == 'init':
+                    # eh... this should be its own function.
+                    if self.curr_collective:
+                        self.client.send_message(
+                            _format_response(
+                                event,
+                                ("There is a collective currently open in"
+                                 " {}. Join that one please.").format(
+                                     self.curr_collective.topic)))
+                    else:
+                        self.curr_collective = Collective(
+                            event['message']['sender_full_name'],
+                            COFFEEBOT_STREAM,
+                            event['subject'])
+                elif command == 'ping':
+                    # this should absolutely be its own function.
+                    # the number of things that could go wrong here are
+                    # very high.
+                    if self.old_collective:
+                        pass  # TODO
                 else:
                     try:
+                        # TODO: command needs to be put into a directive
+                        # and be supplied with arguments.
                         self.curr_collective.dispatch(command)
                     except CoffeeError as e:
                         self.client.send_message(
