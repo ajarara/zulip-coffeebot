@@ -53,7 +53,7 @@ def _reg_wrap(regex, fmt=r".*[^`'\"]{}[^`'\"].*"):
 _PARSE_CACHE = []
 
 
-def _generate_parse_map(
+def _get_parse_map(
         _command_regs=_COMMAND_REGS,
         _parse_cache=_PARSE_CACHE):
     """
@@ -62,6 +62,12 @@ def _generate_parse_map(
     the reg_map is ordered the result we obtain from this call is
     deterministic, so we cache it in _parse_cache. The first time we
     must generate it.
+
+    Returns something like this:
+      ((re.compile('.*[^`'\"]@coffeebot init[^`'\"].*'), 'init')
+       (re.compile('.*[^`'\"]@coffeebot no[^`'\"].*'), 'remove')
+       # etc.
+      )
     """
     if not _parse_cache:
         out = []
