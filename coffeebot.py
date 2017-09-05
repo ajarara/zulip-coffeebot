@@ -14,6 +14,9 @@ Directive = namedtuple('Directive', ['command', 'args'])
 # this is used to build the inverse association list,
 # this isn't used beyond generating the parse cache
 
+# note the raw string prefix. It doesn't matter here (it would if
+# there were backslashes), but in case I'd like to extend these regs
+# later on it makes things look nicer.
 _COMMAND_REGS = (
     ('init', (
         r"@coffeebot init",
@@ -26,8 +29,8 @@ _COMMAND_REGS = (
         r"@coffeebot in",
     )),
     ('remove', (
-        r"@coffeebot leave",
         r"@coffeebot no",
+        r"@coffeebot leave",
         r"@coffeebot out",
     )),
     ('close', (
@@ -42,9 +45,14 @@ _COMMAND_REGS = (
 )
 
 
-def _reg_wrap(regex, fmt=r".*[^`'\"]{}[^`'\"].*"):
-    """Wrap a regex in another, using fmt. Default makes it so
-    that any regex quoted does not summon coffeebot """
+def _reg_wrap(regex, fmt=r".*?[^`'\"]?{}[^`'\"]?.*?"):
+    """
+    Wrap a regex in another, using fmt. Default makes it so
+    that any regex quoted does not summon coffeebot, for example demos.
+    
+    I should probably make it so that coffeebot never replies to
+    itself, regardless.
+    """
     return re.compile(fmt.format(regex))
 
 
@@ -80,10 +88,11 @@ def _get_parse_map(
 
     return _parse_cache[_command_regs]
 
-def parse(message):
+def _parse(message):
     "Given a message, return the first match obtained from _get_parse_map"
+    downcased = message.lower()
     for reg, command in _get_parse_map():
-        if reg.match(message):
+        if reg.match(downcased):
             return command
 
 # I only catch CoffeeErrors. If theres a legit ValueError I'd like to
@@ -210,6 +219,8 @@ class Coffeebot():
     def __init__(self, stream, config_file="zuliprc.conf"):
         here = path.abspath(path.dirname(__file__))
         # used by self.dispatch and self.listen. maps events to handlers
+        # this technically could be class level but it provides for a
+        # weird interface.
         self.event_method_map = {
             'heartbeat': self.handle_heartbeat,
             'private': self.handle_private_message,
@@ -249,6 +260,7 @@ class Coffeebot():
         self.client.send_message({
             "type": "private",
             "to": event.sender_email,
+            # should be help string, instead.
             "content": ("I don't do insider coffee making. "
                         # publically? I always have to check.
                         "Ping me publicly.")
@@ -282,6 +294,7 @@ class Coffeebot():
         pass
 
     def dispatch_event(self, event):
+        "Dispatch on event['type'], passing event to m "
         switch = event['type']
         # dispatch on switch, passing event to the method
         self.event_method_map[switch](event)
