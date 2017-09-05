@@ -17,21 +17,25 @@ Directive = namedtuple('Directive', ['command', 'args'])
 # note the raw string prefix. It doesn't matter here (it would if
 # there were backslashes), but in case I'd like to extend these regs
 # later on it makes things look nicer.
+
+# since we're just starting, make the input range small
 _COMMAND_REGS = (
     ('init', (
         r"@coffeebot init",
         r"@coffeebot start",
-        r"@coffeebot coffee",
+        # r"@coffeebot coffee",
     )),
     ('add', (
         r"@coffeebot yes",
         r"@coffeebot join",
-        r"@coffeebot in",
+        # this is close enough to init that it is worth dropping for now
+        # r"@coffeebot in(?!i)",
     )),
     ('remove', (
         r"@coffeebot no",
         r"@coffeebot leave",
-        r"@coffeebot out",
+        # since this is the inverse of in, not enabled. bad UX otherwise
+        # r"@coffeebot out",
     )),
     ('close', (
         r"@coffeebot done",
@@ -44,9 +48,11 @@ _COMMAND_REGS = (
     )),
 )
 
+# "Here's some conversation, but @coffeebot init it's only mildy
+# relevant to this bot"
 
-# blegh. This works, but makes me sad.
-def _reg_wrap(regex, fmt=r"(?<!`'\"){}(?<!^`'\")"):
+
+def _reg_wrap(regex, fmt=r"^.*(?![`'\"]){}(?![`'\"]).*$"):
     """
     Wrap a regex in another, using fmt. Default makes it so
     that any regex quoted does not summon coffeebot, for example demos.
@@ -101,9 +107,10 @@ def _parse(message):
             return command
 
 
-# I only catch CoffeeErrors. If theres a legit ValueError I'd like to
-# know about it in the logs
-class CoffeeError(ValueError): pass
+# I only catch CoffeeErrors. If theres a legit ValueError
+# I'd like to know about it in the logs
+class CoffeeError(ValueError): pass  # noqa: E701
+
 
 class Collective():
     def __init__(self, leader, stream, topic, max_size=5, timeout_in_mins=15):
@@ -136,7 +143,9 @@ class Collective():
             if len(self) >= self.max_size:
                 self.close()
         else:
-            raise CoffeeError("This collective is closed.")
+            raise CoffeeError(
+                ("Add: Cannot add {}, this collective "
+                 "is already closed.").format(user))
 
     def remove(self, user):
         if user in self.users:
@@ -144,13 +153,26 @@ class Collective():
                 self.leader = None  # :(
             self.users.remove(user)
         else:
-            raise CoffeeError("{} is not in the collective!".format(user))
+            raise CoffeeError(
+                ("Remove: {} is not in "
+                 "the collective!").format(user))
 
     def elect_maker(self):
         if not self.maker:
-            self.maker = sample(self.users, 1)
+            # sample returns a list. get the first.
+            self.maker = sample(self.users, 1)[0]
         else:
-            raise CoffeeError("Maker has already been elected!")
+            # this isn't user exposed, so if this breaks we want to
+            # know about it
+            raise RuntimeError(
+                """
+                Elect_maker called on already formed collective:
+                  Stream: {}
+                  Topic: {}
+                  Time: {}
+                """.format(self.stream,
+                           self.topic,
+                           datetime.now().isoformat()))
 
     def is_stale(self):
         # this is going to be mocked, waiting 15 minutes for tests to pass
@@ -233,8 +255,12 @@ class Coffeebot():
             'message': self.handle_public_message,
         }
 
-        self.client = zulip.Client(
-            config_file=path.join(here, config_file))
+        if config_file:
+            self.client = zulip.Client(
+                config_file=path.join(here, config_file))
+        else:
+            # we're testing, and don't want to accidentally post.
+            self.client = None
 
         # mutable attributes
         self.curr_collective = None
@@ -247,7 +273,7 @@ class Coffeebot():
         self.old_collective.close()
 
     # hmm so maybe this is the wrong way to go about this.
-    def handle_heartbeat(self):
+    def handle_heartbeat(self, _):
         # this is a good opportunity to check if we should close our
         # current collective. Heartbeats are in the v1 API. If this
         # ends up breaking (or heartbeats prove too slow) an
@@ -259,8 +285,12 @@ class Coffeebot():
             self.archive_collective()
 
             # alert the collective who the maker is.
-            self.client.send_message(
-                self.old_collective.timeout_message())
+            self.client.send_message({
+                "type": "stream",
+                "to": self.old_collective.stream,
+                "subject": self.old_collective.topic,
+                "content": self.old_collective.timeout_message()
+            })
 
     def handle_private_message(self, event):
         self.client.send_message({
@@ -295,7 +325,14 @@ class Coffeebot():
         to close all collectives that are stale until you hit a
         CoffeeError.
 
-        This is certainly going to be the roughest part of coffeebot
+        This is certainly going to be the roughest part of coffeebot.
+        """
+        pass
+
+
+    def _help_string(self):
+        """
+        This is done on error, or on private message. Should relay version,
         """
         pass
 
@@ -306,14 +343,22 @@ class Coffeebot():
         self.event_method_map[switch](event)
 
     def listen(self):
-        # figure out if messages mean pings as
-        # well. call_on_each_event doesn't work how I'd like it to
-        # instead listen in on ['heartbeat', 'private']
-        # OH. It's 'message'! Silly me.
-        self.client.call_on_each_event(
-            self.dispatch_event,
-            event_types=self.event_method_map.keys()
-        )
+        # would a runtime error propogate through a blocking call?
+        # can't know until it happens.
+        try:
+            self.client.call_on_each_event(
+                self.dispatch_event,
+                event_types=self.event_method_map.keys()
+            )
+        except RuntimeError as e:
+            # relay that something went terribly wrong inside coffeebot
+            # since we can't tell rn which one it was, just tell current_coll
+            self.send_message({
+                "type": "stream",
+                "to": curr_collective.stream,
+                "subject": curr_collective.topic,
+                "content": ("Something has gone very wrong. "
+                            "Pinging **@Ahmad Jarara**")})
 
 
 def main():
