@@ -45,7 +45,8 @@ _COMMAND_REGS = (
 )
 
 
-def _reg_wrap(regex, fmt=r".*?[^`'\"]?{}[^`'\"]?.*?"):
+# blegh. This works, but makes me sad.
+def _reg_wrap(regex, fmt=r"(?<!`'\"){}(?<!^`'\")"):
     """
     Wrap a regex in another, using fmt. Default makes it so
     that any regex quoted does not summon coffeebot, for example demos.
@@ -88,12 +89,17 @@ def _get_parse_map(
 
     return _parse_cache[_command_regs]
 
+
 def _parse(message):
-    "Given a message, return the first match obtained from _get_parse_map"
+    """
+    Given a message, return the first match obtained from
+    _get_parse_map. If no matches are obtained return None.
+    """
     downcased = message.lower()
     for reg, command in _get_parse_map():
         if reg.match(downcased):
             return command
+
 
 # I only catch CoffeeErrors. If theres a legit ValueError I'd like to
 # know about it in the logs
