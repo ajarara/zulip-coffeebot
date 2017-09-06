@@ -137,6 +137,7 @@ class Collective():
         self.timeout_in_mins = timedelta(minutes=timeout_in_mins)
         self.time_created = datetime.now()
 
+        # mutable attributes
         self.users = {leader}
         self.closed = False
         self.maker = None
@@ -167,8 +168,8 @@ class Coffeebot():
         # weird interface.
         self.event_method_map = {
             'heartbeat': self.handle_heartbeat,
-            'private': self.handle_private_message,
-            'message': self.handle_public_message,
+            'private':   self.handle_private_message,
+            'message':   self.handle_public_message,
         }
 
         # because public messages are the point of interaction, this is
@@ -220,7 +221,6 @@ class Coffeebot():
         pass
 
     # ==================== dispatch ====================
-
     def handle_heartbeat(self, beat):
         pass
 
