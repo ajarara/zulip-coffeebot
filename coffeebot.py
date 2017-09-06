@@ -7,9 +7,6 @@ import re
 # external dep
 import zulip
 
-Directive = namedtuple('Directive', ['command', 'args'])
-# type: (str, dict) -> Directive
-
 # an association tuple of directives to regular expressions.
 # this is used to build the inverse association list,
 # this isn't used beyond generating the parse cache
@@ -118,16 +115,6 @@ class CoffeeError(ValueError): pass  # noqa: E701
 COFFEEBOT_STREAM = ["#coffee"]
 
 
-# assumes event is a public message with a topic associated with it
-# returns a dict that can be fed into a zulip client send_message.
-# this makes it easy to change the hardcoded value later on.
-def _format_response(event, content):
-    return {
-        "type": "stream",
-        "to": COFFEEBOT_STREAM,
-        "subject": event['subject'],
-        "content": content,
-    }
 
 
 class Collective():
@@ -249,6 +236,14 @@ class Collective():
         return len(self.users)
 
 
+# I'd have to hash on where?
+Context = namedtuple("Context", ['stream', 'subject', 'user'])
+
+# This'd work.
+def where(context):
+    return (context.stream, context.subject)
+
+
 class Coffeebot():
     """
     Coffeebot's job is to take in requests from the API, attempt to
@@ -280,114 +275,129 @@ class Coffeebot():
             # we're testing, and don't want to accidentally post.
             self.client = None
 
-        # mutable attributes
-        self.curr_collective = None
-        self.old_collective = None
+        # this is the only state in coffeebot, a map of topics and
+        # streams to collectives.  granted, this is a lot of state.
+        self.bag_collectives = {}
 
-    def archive_collective(self):
-        self.old_collective = self.curr_collective
-        self.curr_collective = None
-        # closing the collective elects a maker
-        self.old_collective.close()
+    def public_say(content, event):
+        message = event['message']
+        self.client.send_message({
+            "type": "stream",
+            "to": message['display_recipient'],
+            "subject": message['subject'],
+            "content": content})
 
     # hmm so maybe this is the wrong way to go about this.
     def handle_heartbeat(self, _):
-        # this is a good opportunity to check if we should close our
-        # current collective. Heartbeats are in the v1 API. If this
-        # ends up breaking (or heartbeats prove too slow) an
-        # alternative implementation is to write a client that listens
-        # until a timeout.  or request that the client lib support
-        # timeouts. Either works.
-        if self.curr_collective and self.curr_collective.is_stale():
-            # the collective has timed out. archive it (which closes it)
-            self.archive_collective()
-
-            # alert the collective who the maker is.
-            self.client.send_message({
-                "type": "stream",
-                "to": self.old_collective.stream,
-                "subject": self.old_collective.topic,
-                "content": self.old_collective.timeout_message()
-            })
+        # iterate through all collectives, checking if they are stale.
+        # close them if they are.
+        for where, coll in self.bag_collectives.items():
+            if coll.is_stale():
+                coll.close()
+                self.client.send_message({
+                    "type": "stream",
+                    "to": where.stream,
+                    "subject": where.subject,
+                    "content": coll.timeout_message()
+                    })
 
     def handle_private_message(self, event):
         self.client.send_message({
             "type": "private",
-            "to": event.sender_email,
+            "to": event['message']['sender_email'],
             # should be help string, instead.
             "content": ("I don't do insider coffee making. "
                         # publically? I always have to check.
                         "Ping me publicly.")
             })
 
+    def _init_coll(self, event):
+        """
+        Construct a Where from the event. Check to see if that Where
+        is in the bag of collectives, and if so, check to see if the
+        collective is open.
+
+        If it is, reject the event, suggesting to instead join the
+        currently open collective.
+
+        Otherwise, initialize a collective, with the person who
+        initiated as the leader. Inform the leader the collective is now open.
+        """
+        message = event['message']
+        where = Where(message['display_recipient'],  # stream
+                      message['subject'])  # subject
+        if (where in self.bag_collectives and
+                not self.bag_collectives[where].closed):
+            self.client.send_message(
+                _format_public_response(
+                    where,
+                    ("This collective is still open! "
+                     "Join it, I'm sure they won't bite.")))
+        else:
+            # overwrite the previous (closed) collective in memory, if
+            # it existed.
+            self.bag_collectives[where] = Collective(
+                message['sender_full_name'],
+                where.stream,
+                where.subject)
+            self.send_message(
+                _format_public_response(
+                    where,
+                    ("You've started a new collective! :tada: "
+                     "Wait for others to join, or say `@coffeebot close` "
+                     "(without the quotes) to elect a maker and have "
+                     "your :coffee:\n To join this collective, "
+                     "type `@coffeebot yes` (without the quotes)")))
+
+    def _ping_coll(self, event):
+        message = event['message']
+        where = Where(message['display_recipient']
+                      message['subject'])
+        if where in self.bag_collectives:
+            coll = self.bag_collectives[where]
+            if not coll.closed:
+                
+
+            if (self.bag_collectives[where].closed and
+            message['sender_full_name'] == 
+
     def handle_public_message(self, event):
         """
-        TODO: Attempt to parse the message contents, if mentioned. If
-        nothing is found, send an error message, maybe tell user to PM
-        coffeebot? Otherwise,dispatch the directive on the current collective.
-
-        Hmm. If it's a ping then it should act on the closed
-        collective.
-
-        That's a little confusing, as it'll do this even if the user
-        does it in a different stream.  Maybe putting collectives in a
-        deque is a good idea. During heartbeats check for stale
-        collectives and collectives that are expired (beyond two
-        hours), closing the first and removing the second.
-
-        This could be done easily by putting all collectives in a
-        deque. For the second case, do something like while colls and
-        colls[0].is_moldy(): colls.leftpop
-
-        For the first, iterate backwards through the deque, attempting
-        to close all collectives that are stale until you hit a
-        CoffeeError.
-
-        This is certainly going to be the roughest part of coffeebot.
+        Parse the event's message. If the event parses into something,
+        execute it. Otherwise tell the user to PM for help.
         """
+        message = event['message']
+
         # never reply to myself:
-        if not event['message']['is_me_message']:
-            if event['message']['is_mentioned']:
-                command = _parse(event['content'])
-                if command is None:
-                    # coffeebot doesn't recognize this string
-                    self.client.send_message(
-                        _format_response(
-                            event,
-                            ("I can't figure out what you mean.\n"
-                             "Private message me for help please.")
-                            )
+        if not message['is_me_message'] and message['is_mentioned']:
+            command = _parse(event['content'])
+            if command is None:
+                # coffeebot doesn't recognize this string
+                self.client.send_message(
+                    _format_public_response(
+                        event,
+                        ("I can't figure out what you mean.\n"
+                         "Private message me for help please.")
                     )
-                elif command == 'init':
-                    # eh... this should be its own function.
-                    if self.curr_collective:
-                        self.client.send_message(
-                            _format_response(
-                                event,
-                                ("There is a collective currently open in"
-                                 " {}. Join that one please.").format(
-                                     self.curr_collective.topic)))
-                    else:
-                        self.curr_collective = Collective(
-                            event['message']['sender_full_name'],
-                            COFFEEBOT_STREAM,
-                            event['subject'])
-                elif command == 'ping':
-                    # this should absolutely be its own function.
-                    # the number of things that could go wrong here are
-                    # very high.
-                    if self.old_collective:
-                        pass  # TODO
-                else:
-                    try:
-                        # TODO: command needs to be put into a directive
-                        # and be supplied with arguments.
-                        self.curr_collective.dispatch(command)
-                    except CoffeeError as e:
-                        self.client.send_message(
-                            _format_response(event,
-                                             e.args[0])
-                            )
+                )
+            elif command == 'init':
+                self._init_coll(event)
+            elif command == 'ping':
+                self._ping_coll(event)
+
+            else:
+                # maybe I should ditch collectives.
+                # the only remaining commands are add, remove, and close.
+                try:
+                    # TODO: command needs to be put into a directive
+                    # and be supplied with arguments.
+                    self._dispatch_coll(event, coll_dispatch)
+                except CoffeeError as e:
+
+                    self.client.send_message(
+                        _format_public_response(event,
+                                         e.args[0])
+                    )
 
     def _help_string(self):
         """
