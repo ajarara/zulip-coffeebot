@@ -29,8 +29,8 @@ COMMAND_REGS = (
         # r"@coffeebot out",
     )),
     ('close', (
-        r"@coffeebot done",
         r"@coffeebot close",
+        r"@coffeebot done",
         r"@coffeebot stop",
     )),
     ('ping', (
@@ -234,7 +234,36 @@ class Coffeebot():
 
         # TODO
         self.help_string = """
-            pass
+        Coffeebot takes a ton of commands, but only publicly.
+
+            - "@coffeebot init"
+
+                Initialize a collective, with you as the leader. The
+                leader has no fancy functionality but kudos to you for
+                taking the initiative!
+
+            - "@coffeebot yes"
+
+                Join an open collective. By joining you affirm you want coffee,
+                and are willing to make coffee for up to 2 others.
+
+            - "@coffeebot no"
+
+                Drop your commitment to the collective :disappointed_relieved:.
+                You renounce your claim to coffee, and thus don't have
+                to risk making it.
+
+            - "@coffeebot close"
+
+                Close the collective. Only those within it may close it.
+
+            - "@coffeebot ping"
+
+                Ping all those in the collective (usually to let them
+                know coffee is ready). Only the maker may do this, but
+                there's nothing stopping someone from doing it
+                manually.
+
         """
         self.client = zulip.Client(
             config_file=path.join(here, config_file))
@@ -243,12 +272,12 @@ class Coffeebot():
         self.collectives = {}
 
     # ==================== utility ====================
-    def public_say(self, content, event):
-        here = Where(event)
+    def public_say(self, content, where):
+        
         self.client.send_message({
             "type": "stream",
-            "to": here.stream,
-            "subject": here.subject,
+            "to": where.stream,
+            "subject": where.subject,
             "content": content,
         })
 
@@ -266,7 +295,7 @@ class Coffeebot():
                 like, join this one or start your own in some other
                 thread.
                 """,
-                event)
+                here)
         else:
             self.collectives[here] = Collective(
                 con.user)
@@ -279,7 +308,7 @@ class Coffeebot():
                 have your :coffee:. To join this collective, type
                 `@coffeebot yes` in this thread.
                 """,
-                event)
+                here)
 
     def add_to_collective(self, event):
         con = make_context(event)
@@ -300,7 +329,7 @@ class Coffeebot():
                     You're already in this collective. Coffeebot
                     appreciates the enthusiasm, though.
                     """,
-                    event)
+                    here)
             else:
                 coll.add(con.user)
                 # no need to say anything, but we should acknowledge
@@ -315,7 +344,7 @@ class Coffeebot():
                 There is no recently active collective in this
                 thread. Make a new one! PM me for details on how.
                 """,
-                event)
+                here)
 
     def remove_from_collective(self, event):
         con = make_context(event)
@@ -327,7 +356,7 @@ class Coffeebot():
                     ("No one can leave a closed collective. "
                      "You are free to forfeit your coffee, "
                      "however, just let the maker know"),
-                    event)
+                    here)
             elif con.user in coll:
                 # I also need to acknowledge this, as it is
                 # potentially a common operation. emote!
@@ -338,21 +367,21 @@ class Coffeebot():
                         ("Since everyone has left this collective, "
                          "it is now defunct. A new collective must "
                          "be opened."),
-                        event)
+                        here)
 
     def state_of_collective(self, event):
         here = make_where(event)
         if here in self.collectives:
             self.public_say(
                 repr(self.collectives[here]),
-                event)
+                here)
         else:
             self.public_say(
                 """
                 Coffeebot does not know anything about the collectives
                 in this thread. Coffeebot has no persistent storage. :cry:
                 """,
-                event)
+                here)
 
     def ping_collective(self, event):
         con = make_context(event)
@@ -365,17 +394,17 @@ class Coffeebot():
                     self.public_say(
                         "*Pinging all in the collective!!*\n {}".format(
                             coll.ping_string()),
-                        event)
+                        here)
                 else:
                     self.public_say(
                         "Only the coffee maker, {}, may ping.".format(
                             coll.maker),
-                        event)
+                        here)
             else:
                 self.public_say(
                     ("This collective isn't closed yet, "
                      "so Coffeebot refuses to ping."),
-                    event)
+                    here)
 
     def close_collective(self, event):
         # (Feel free to make tea instead, I won't judge. Much.)
@@ -386,15 +415,15 @@ class Coffeebot():
             if coll.closed:
                 self.public_say(
                     "This collective is already closed!",
-                    event)
+                    here)
             elif con.user in coll:
                 coll.close()
                 self.public_say(
                     ("The magnificent Coffeebot has consulted the "
                      "grounds of the last collective and has chosen "
                      "@**{}** as the maker! Fulfill your destiny, {}").format(
-                         coll.maker, coll.maker.split("(")[0]).rstrip(),
-                    event)
+                         coll.maker, coll.maker.split("(")[0].rstrip()),
+                    here)
 
     def candy_cane(self, event):
         # huh does zulip use constant width?
@@ -405,10 +434,16 @@ class Coffeebot():
 
     # ==================== dispatch ====================
     def handle_heartbeat(self, beat):
-        for where, coll in self.collectives.items():
+        for here, coll in self.collectives.items():
             if coll.is_stale() and not coll.closed:
-                pass
-        pass
+                # timeout has occured
+                coll.close()
+                coll.public_say(
+                    ("The Coffeebot has grown impatient and has "
+                     "closed this collective. Coffeebot has chosen "
+                     "@**{}** as the maker! Fullfill your destiny, {}").format(
+                         coll.maker, coll.maker.split("(")[0].rstrip()),
+                     here)
 
     def handle_private_message(self, event):
         pass
