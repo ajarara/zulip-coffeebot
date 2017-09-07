@@ -31,6 +31,9 @@ COMMAND_REGS = (
         r"@coffeebot close",
         r"@coffeebot stop",
     )),
+    ('ping', (
+        r"@coffeebot ping",
+    )),
     ('love', (
         r"@coffeebot love",
         r"i love you @coffeebot",
@@ -42,7 +45,7 @@ def reg_wrap(regex, fmt=r"^.*(?![`'\"]){}(?![`'\"]).*$"):
     """
     Wrap a regex in another, using fmt. Default makes it so
     that any regex quoted does not summon coffeebot, for example demos.
-    
+
     I should probably make it so that coffeebot never replies to
     itself, regardless.
     """
@@ -110,8 +113,13 @@ def context(event):
 Where = namedtuple("Where", ['stream', 'subject'])
 
 
-def where(event):
-    message = event['message']
+def where(event_or_context):
+    # wheres can be built from a context (a common scenario, since we
+    # use wheres as keys for collectives
+    if isinstance(event_or_context, Context):
+        return Where(context.stream,
+                     context.subject)
+    message = event_or_context['message']
     return Where(message['display_recipient'],
                  message['subject'])
 
@@ -178,6 +186,7 @@ class Coffeebot():
             'init':   self.init_collective,
             'add':    self.add_to_collective,
             'remove': self.remove_from_collective,
+            'ping':   self.ping_collective,
             'close':  self.close_collective,
             'love':   self.candy_cane,
         }
@@ -190,7 +199,7 @@ class Coffeebot():
             config_file=path.join(here, config_file))
 
         # besides IO, this is the only state in Coffeebot.
-        self.bag_collectives = {}
+        self.collectives = {}
 
     # ==================== utility ====================
     def public_say(self, content, event):
@@ -204,7 +213,33 @@ class Coffeebot():
 
     # ==================== collective interaction ====================
     def init_collective(self, event):
-        pass
+        # in all cases I'll want the where and the context
+        # if I feed Where a context it should handle that.
+        here = Where(event)
+        if (here in self.collectives and
+                not self.collectives[here].closed):
+            # ping the user by name?
+            self.public_say(
+                """
+                pass
+                """,
+                event)
+        else:
+            con = Context(event)
+            self.collectives[here] = Collective(
+                con.user,
+                con.stream,
+                con.subject)
+            self.public_say(
+                """
+                You've initialized a coffee collective! :tada:
+                Wait for others to join, or say `@coffeebot close`
+                (without the quotes) to close the collective, randomly
+                choose a maker, and have your :coffee:. To join this
+                collective, type `@coffeebot yes` in this thread.
+
+                """,
+                event)
 
     def add_to_collective(self, event):
         pass
@@ -212,7 +247,11 @@ class Coffeebot():
     def remove_from_collective(self, event):
         pass
 
+    def ping_collective(self, event):
+        pass
+
     def close_collective(self, event):
+        # (Feel free to make tea instead, I won't judge. Much.)
         pass
 
     def candy_cane(self, event):
