@@ -176,6 +176,28 @@ class Collective():
         return " ".join(
             ["@**{}**".format(user) for user in self.users])
 
+    def __repr__(self):
+        # this is forwarded to zulip.
+        out = []
+        out.append("Members: {}".format(
+            ", ".join(self.users)))
+        out.append("Positions left: {}".format(
+            self.max_size - len(self.users)))
+        out.append("Time created: {:%A, %I:%M:%S %p}".format(
+            self.time_created))
+        # for now, we'll just do minutes.
+        minutes_left = int(
+            (self.timeout_in_mins -
+             (datetime.now() - self.time_created)).seconds / 60)
+        if self.closed:
+            out.append("Status: Closed")
+        elif minutes_left == 0:
+            out.append("Status: Closing soon!")
+        else:
+            out.append("Status: {} minutes left".format(minutes_left))
+
+        return "\n".join(out)
+
 
 # ==================== Coffeebot, The ====================
 
@@ -203,6 +225,7 @@ class Coffeebot():
             'init':   self.init_collective,
             'add':    self.add_to_collective,
             'remove': self.remove_from_collective,
+            'state':  self.state_of_collective,
             'ping':   self.ping_collective,
             'close':  self.close_collective,
             'love':   self.candy_cane,
@@ -230,12 +253,11 @@ class Coffeebot():
 
     # ==================== collective interaction ====================
     def init_collective(self, event):
-        # in all cases I'd like the context and where.
         con = make_context(event)
         here = make_where(con)
         if (here in self.collectives and
                 not self.collectives[here].closed):
-            # ping the user by name?
+            # ping the user by name? let's not.
             # these are a little too verbose I think.
             self.public_say(
                 """
@@ -281,6 +303,8 @@ class Coffeebot():
                 # no need to say anything, but we should acknowledge
                 # the user's joined the collective.
                 # given an event, can we emote on it?
+                # :heavy_check_mark: sounds like a good candidate
+                # this is suddenly the most important thing about the bot.
                 pass
         else:
             self.public_say(
@@ -294,6 +318,21 @@ class Coffeebot():
         con = make_context(event)
         here = make_where(con)
         pass
+
+    def state_of_collective(self, event):
+        here = make_where(event)
+        if here in self.collectives:
+            self.public_say(
+                repr(self.collectives[here]),
+                event)
+        else:
+            self.public_say(
+                """
+                Coffeebot does not know anything about the collectives
+                in this thread. Coffeebot has no persistent storage
+                :cry:
+                """,
+                event)
 
     def ping_collective(self, event):
         pass
@@ -313,9 +352,7 @@ class Coffeebot():
     def handle_heartbeat(self, beat):
         for where, coll in self.collectives.items():
             if coll.is_stale() and not coll.closed:
-                # in this scenario beat does not give us context
-                # we've got to pull out context from the mapping in our
-                # collectives dict.
+                # we can assume that there is at least one person in here
                 pass
         pass
 
