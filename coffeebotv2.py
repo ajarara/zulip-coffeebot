@@ -143,12 +143,9 @@ def make_where(event_or_context):
 # huh.. in this design there is no need at all to have Collectives
 # care about their stream and subject. Maybe remove them?
 class Collective():
-    def __init__(self, leader, stream, subject,
-                 max_size=5, timeout_in_mins=15):
+    def __init__(self, leader, max_size=5, timeout_in_mins=15):
         # TODO: Check max_size and timeout_in_mins for reasonable values
         self.leader = leader
-        self.stream = stream
-        self.subject = subject
         self.max_size = max_size
 
         self.timeout_in_mins = timedelta(minutes=timeout_in_mins)
@@ -262,9 +259,7 @@ class Coffeebot():
                 event)
         else:
             self.collectives[here] = Collective(
-                con.user,
-                con.stream,
-                con.subject)
+                con.user)
             self.public_say(
                 """
                 You've initialized a coffee collective! :tada:
