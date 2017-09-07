@@ -37,9 +37,6 @@ COMMAND_REGS = (
     )),
 )
 
-# "Here's some conversation, but @coffeebot init it's only mildy
-# relevant to this bot"
-
 
 def reg_wrap(regex, fmt=r"^.*(?![`'\"]){}(?![`'\"]).*$"):
     """
@@ -52,8 +49,7 @@ def reg_wrap(regex, fmt=r"^.*(?![`'\"]){}(?![`'\"]).*$"):
     return re.compile(fmt.format(regex))
 
 
-# this is populated by the below function. Don't think of it as a
-# list, think of it as a container.
+# this is populated by the below function.
 _PARSE_CACHE = {}
 
 
@@ -155,6 +151,8 @@ class Collective():
     def __len__(self):
         return len(self.users)
 
+
+# ==================== Coffeebot, The ====================
 
 class Coffeebot():
     """
