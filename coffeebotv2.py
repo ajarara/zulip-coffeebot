@@ -207,7 +207,7 @@ class Coffeebot():
     Coffeebot's job is to take in requests from the API and attempt to
     execute them in the correct collective.
     """
-    def __init__(self, stream, config_file="zuliprc.conf"):
+    def __init__(self, config_file="zuliprc.conf"):
         here = path.abspath(path.dirname(__file__))
         # used by self.dispatch and self.listen. maps events to handlers
         # this technically could be class level but it provides for a
