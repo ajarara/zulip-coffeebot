@@ -8,6 +8,8 @@ import re
 import zulip
 
 # ==================== PARSING ====================
+# coffeebot utilizes this map to understand commands.
+# it then maps these commands to actions, and attempts to execute them.
 COMMAND_REGS = (
     ('init', (
         r"@coffeebot init",
@@ -125,23 +127,7 @@ def make_where(event_or_context):
                  message['subject'])
 
 
-# collectives are just mutable data structures that coffeebot acts on.
-# they can't have the context to understand what to do in all
-# situations, so rather than implement half of their actions here and
-# half of their actions in coffeebot, this will just be a fancy dict that
-# coffeebot reaches into and manipulates.
-
-# hmm.. thinking that maybe instead we define forward methods
-# so that we don't have to reach into the users set everytime
-# we want to query or manipulate it..
-
-# there are multiple instances where we'd like to close a collective
-# under different conditions, and relay those conditions to the user
-# so there is a need to have a close method of the collective.
-
-
-# huh.. in this design there is no need at all to have Collectives
-# care about their stream and subject. Maybe remove them?
+# collectives are groups of people interested in making coffee.
 class Collective():
     def __init__(self, leader, max_size=5, timeout_in_mins=15):
         # TODO: Check max_size and timeout_in_mins for reasonable values
@@ -158,6 +144,7 @@ class Collective():
 
     # ==================== collective actions ====================
     def elect_maker(self):
+        assert not self.maker
         # sample returns a list, we just want the first.
         self.maker = sample(self.users, 1)[0]
 
@@ -326,10 +313,9 @@ class Coffeebot():
     def handle_heartbeat(self, beat):
         for where, coll in self.collectives.items():
             if coll.is_stale() and not coll.closed:
-                # hmmm.. this is duplicating code I'm going to have to define
-                # in the close_collective portion.
-                # Sounds like I should push this down to collectives
-                # I think the mistake was giving collectives dispatch
+                # in this scenario beat does not give us context
+                # we've got to pull out context from the mapping in our
+                # collectives dict.
                 pass
         pass
 
