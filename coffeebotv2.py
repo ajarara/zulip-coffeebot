@@ -159,7 +159,30 @@ class Collective():
         self.closed = False
         self.maker = None
 
-    # the notable exceptions are for convenient methods to represent state
+    # ==================== collective actions ====================
+    def elect_maker(self):
+        # sample returns a list, we just want the first.
+        self.maker = sample(self.users, 1)[0]
+
+    def close(self):
+        assert not self.closed
+        self.elect_maker()
+        self.closed = True
+
+    # ==================== forwarding methods ====================
+    def add(self, user):
+        self.users.add(user)
+
+    def remove(self, user):
+        self.users.remove(user)
+
+    def __contains__(self, user):
+        return user in self.users
+
+    def __len__(self):
+        return len(self.users)
+
+    # ==================== state representation ====================
     def is_stale(self):
         return datetime.now() - self.time_created >= self.timeout_in_mins
 
@@ -168,9 +191,6 @@ class Collective():
         assert self.closed
         return " ".join(
             ["@**{}**".format(user) for user in self.users])
-
-    def __len__(self):
-        return len(self.users)
 
 
 # ==================== Coffeebot, The ====================
