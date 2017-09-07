@@ -22,7 +22,7 @@ COMMAND_REGS = (
         # r"@**coffeebot** coffee",
     )),
     ('add', (
-        "yes"
+        "yes",
         "join",
         # this is close enough to init that it is worth dropping for now
         # "in(?!i)",
@@ -33,13 +33,16 @@ COMMAND_REGS = (
         # since this is the inverse of in, not enabled. bad UX otherwise
         # "out",
     )),
+    ('state', (
+        "state",
+    )),
+    ('ping', (
+        "ping",
+    )),
     ('close', (
         "close",
         "done",
         "stop",
-    )),
-    ('ping', (
-        "ping",
     )),
     ('love', (
         "love",
@@ -47,6 +50,7 @@ COMMAND_REGS = (
 )
 
 
+# soon enough I should move the default format to a more readable reg
 def reg_wrap(regex, fmt=r"^.*(?![`'\"])@\*\*{}\*\*\s+{}(?![`'\"]).*$"):
     """
     Wrap a regex in another, using fmt. Default makes it so
@@ -284,10 +288,11 @@ Ping all those in the collective (usually to let them know coffee is ready). Onl
             self.collectives[here] = Collective(
                 con.user)
             self.public_say(
-                ("You've initialized a coffee collective! :tada: Wait "
+                ("You've initialized a coffee collective! :tada:\n\nWait "
                  "for others to join, for the collective to timeout, or "
                  "say `@coffeebot close` (without the quotes) to close "
-                 "the collective yourself, randomly choose a maker, and "
+                 "the collective yourself. \n\nOnce closed, Coffeebot will "
+                 "choose a maker, and you all will soon "
                  "have your :coffee:. To join this collective, type "
                  "`@coffeebot yes` in this thread."),
                 here)
@@ -395,7 +400,8 @@ Ping all those in the collective (usually to let them know coffee is ready). Onl
                 self.public_say(
                     ("The magnificent Coffeebot has consulted the "
                      "grounds of the last collective and has chosen "
-                     "@**{}** as the maker! Fulfill your destiny, {}").format(
+                     "@**{}** as the maker! Go forth and fulfill "
+                     "your destiny.").format(
                          coll.maker, coll.maker.split("(")[0].rstrip()),
                     here)
                 self.public_say(
