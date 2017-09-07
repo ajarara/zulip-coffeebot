@@ -443,10 +443,14 @@ class Coffeebot():
                      "closed this collective. Coffeebot has chosen "
                      "@**{}** as the maker! Fullfill your destiny, {}").format(
                          coll.maker, coll.maker.split("(")[0].rstrip()),
-                     here)
+                    here)
 
     def handle_private_message(self, event):
-        pass
+        self.client.send_message({
+            "type": "private",
+            "to": event['message']['sender_email'],
+            "content": self.help_string,
+            })
 
     def handle_public_message(self, event):
         pass
