@@ -9,50 +9,50 @@ import re
 import zulip
 
 # ==================== PARSING ====================
+
+# what are we called?
+NAME = "coffeebot"
+
 # coffeebot utilizes this map to understand commands.
 # it then maps these commands to actions, and attempts to execute them.
 COMMAND_REGS = (
     ('init', (
-        r"@coffeebot init",
-        r"@coffeebot start",
-        # r"@coffeebot coffee",
+        "init",
+        "start",
+        # r"@**coffeebot** coffee",
     )),
     ('add', (
-        r"@coffeebot yes",
-        r"@coffeebot join",
+        "yes"
+        "join",
         # this is close enough to init that it is worth dropping for now
-        # r"@coffeebot in(?!i)",
+        # "in(?!i)",
     )),
     ('remove', (
-        r"@coffeebot no",
-        r"@coffeebot leave",
+        "no",
+        "leave",
         # since this is the inverse of in, not enabled. bad UX otherwise
-        # r"@coffeebot out",
+        # "out",
     )),
     ('close', (
-        r"@coffeebot close",
-        r"@coffeebot done",
-        r"@coffeebot stop",
+        "close",
+        "done",
+        "stop",
     )),
     ('ping', (
-        r"@coffeebot ping",
+        "ping",
     )),
     ('love', (
-        r"@coffeebot love",
-        r"i love you @coffeebot",
+        "love",
     )),
 )
 
 
-def reg_wrap(regex, fmt=r"^.*(?![`'\"]){}(?![`'\"]).*$"):
+def reg_wrap(regex, fmt=r"^.*(?![`'\"])@\*\*{}\*\*\s+{}(?![`'\"]).*$"):
     """
     Wrap a regex in another, using fmt. Default makes it so
     that any regex quoted does not summon coffeebot, for example demos.
-
-    I should probably make it so that coffeebot never replies to
-    itself, regardless.
     """
-    return re.compile(fmt.format(regex))
+    return re.compile(fmt.format(NAME, regex))
 
 
 # this is populated by the below function.
