@@ -336,7 +336,27 @@ class Coffeebot():
                 event)
 
     def ping_collective(self, event):
-        pass
+        con = make_context(event)
+        here = make_where(con)
+
+        if here in self.collectives:
+            coll = self.collectives[here]
+            if coll.closed:
+                if coll.maker == con.user:
+                    self.public_say(
+                        "*Pinging all in the collective!!*\n {}".format(
+                            coll.ping_string()),
+                        event)
+                else:
+                    self.public_say(
+                        "Only the coffee maker, {}, may ping.".format(
+                            coll.maker),
+                        event)
+            else:
+                self.public_say(
+                    ("This collective isn't closed yet, "
+                     "so Coffeebot refuses to ping."),
+                    event)
 
     def close_collective(self, event):
         # (Feel free to make tea instead, I won't judge. Much.)
