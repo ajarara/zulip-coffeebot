@@ -276,24 +276,20 @@ Ping all those in the collective (usually to let them know coffee is ready). Onl
             # ping the user by name? let's not.
             # these are a little too verbose I think.
             self.public_say(
-                """
-                The collective in this thread is still open. If you'd
-                like, join this one or start your own in some other
-                thread.
-                """,
+                ("The collective in this thread is still open. If you'd "
+                 "like, join this one or start your own in some other "
+                 "thread. "),
                 here)
         else:
             self.collectives[here] = Collective(
                 con.user)
             self.public_say(
-                """
-                You've initialized a coffee collective! :tada: Wait
-                for others to join, for the collective to timeout, or
-                say `@coffeebot close` (without the quotes) to close
-                the collective yourself, randomly choose a maker, and
-                have your :coffee:. To join this collective, type
-                `@coffeebot yes` in this thread.
-                """,
+                ("You've initialized a coffee collective! :tada: Wait "
+                 "for others to join, for the collective to timeout, or "
+                 "say `@coffeebot close` (without the quotes) to close "
+                 "the collective yourself, randomly choose a maker, and "
+                 "have your :coffee:. To join this collective, type "
+                 "`@coffeebot yes` in this thread."),
                 here)
 
     def add_to_collective(self, event):
@@ -304,17 +300,12 @@ Ping all those in the collective (usually to let them know coffee is ready). Onl
             if coll.closed:
                 self.public_say(
                     # notify user of all open collectives?
-                    """
-                    This collective is closed.  Start your own with
-                    `@coffeebot init` (without the quotes).
-                    """,
-                    event)
+                    ("This collective is closed.  Start your own with "
+                     "`@coffeebot init` (without the quotes)."), event)
             elif con.user in coll.users:
                 self.public_say(
-                    """
-                    You're already in this collective. Coffeebot
-                    appreciates the enthusiasm, though.
-                    """,
+                    ("You're already in this collective. Coffeebot "
+                     "appreciates the enthusiasm, though."),
                     here)
             else:
                 coll.add(con.user)
@@ -326,10 +317,8 @@ Ping all those in the collective (usually to let them know coffee is ready). Onl
                 pass
         else:
             self.public_say(
-                """
-                There is no recently active collective in this
-                thread. Make a new one! PM me for details on how.
-                """,
+                ("There is no recently active collective in this "
+                 "thread. Make a new one! PM me for details on how."),
                 here)
 
     def remove_from_collective(self, event):
@@ -364,10 +353,8 @@ Ping all those in the collective (usually to let them know coffee is ready). Onl
                 here)
         else:
             self.public_say(
-                """
-                Coffeebot does not know anything about the collectives
-                in this thread. Coffeebot has no persistent storage. :cry:
-                """,
+                ("Coffeebot does not know anything about the collectives "
+                 "in this thread. Coffeebot has no persistent storage. :cry:"),
                 here)
 
     def ping_collective(self, event):
