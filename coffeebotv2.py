@@ -177,7 +177,6 @@ class Collective():
             ["@**{}**".format(user) for user in self.users])
 
     def __repr__(self):
-        # this is forwarded to zulip.
         out = []
         out.append("Members: {}".format(
             ", ".join(self.users)))
@@ -185,16 +184,18 @@ class Collective():
             self.max_size - len(self.users)))
         out.append("Time created: {:%A, %I:%M:%S %p}".format(
             self.time_created))
-        # for now, we'll just do minutes.
-        minutes_left = int(
-            (self.timeout_in_mins -
-             (datetime.now() - self.time_created)).seconds / 60)
+
         if self.closed:
             out.append("Status: Closed")
-        elif minutes_left == 0:
-            out.append("Status: Closing soon!")
         else:
-            out.append("Status: {} minutes left".format(minutes_left))
+            # this code makes me sad.
+            minutes_left = int(
+                (self.timeout_in_mins -
+                 (datetime.now() - self.time_created)).seconds / 60)
+            if minutes_left == 0:
+                out.append("Status: Closing soon!")
+            else:
+                out.append("Status: {} minutes left".format(minutes_left))
 
         return "\n".join(out)
 
