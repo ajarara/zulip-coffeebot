@@ -273,6 +273,9 @@ class Coffeebot():
             "content": content,
         })
 
+    def is_me_message(self, event):
+        return self.client.email == event['message']['sender_email']
+
     # ==================== collective interaction ====================
     def init_collective(self, event):
         con = make_context(event)
@@ -437,7 +440,6 @@ class Coffeebot():
                          coll.maker, coll.maker.split("(")[0].rstrip()),
                     here)
 
-
     def handle_private_message(self, event):
         message = event['message']
         self.client.send_message({
@@ -468,7 +470,8 @@ class Coffeebot():
             self.handle_heartbeat(event)
 
         # never reply to thyself
-        elif switch == 'message' and not event['message']['is_me_message']:
+        # event['message']['is_me_message'] does not get set...
+        elif switch == 'message' and not self.is_me_message(event):
             kind = event['message']['type']
             if kind == 'private':
                 self.handle_private_message(event)
@@ -479,7 +482,6 @@ class Coffeebot():
         self.client.call_on_each_event(
             self.dispatch,
             event_types=['heartbeat', 'message', 'reaction'])
-
 
 
 def main():
