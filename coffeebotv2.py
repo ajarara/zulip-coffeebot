@@ -135,6 +135,10 @@ def make_where(event_or_context):
 # so that we don't have to reach into the users set everytime
 # we want to query or manipulate it..
 
+# there are multiple instances where we'd like to close a collective
+# under different conditions, and relay those conditions to the user
+# so there is a need to have a close method of the collective.
+
 
 # huh.. in this design there is no need at all to have Collectives
 # care about their stream and subject. Maybe remove them?
@@ -222,7 +226,7 @@ class Coffeebot():
 
     # ==================== collective interaction ====================
     def init_collective(self, event):
-        # in all cases I'll want the where and the context
+        # in all cases I'd like the context and where.
         con = make_context(event)
         here = make_where(con)
         if (here in self.collectives and
@@ -277,9 +281,16 @@ class Coffeebot():
                 # given an event, can we emote on it?
                 pass
         else:
-            pass
+            self.public_say(
+                """
+                There is no recently active collective in this
+                thread. Make a new one! PM me for details on how.
+                """,
+                event)
 
     def remove_from_collective(self, event):
+        con = make_context(event)
+        here = make_where(con)
         pass
 
     def ping_collective(self, event):
@@ -298,6 +309,13 @@ class Coffeebot():
 
     # ==================== dispatch ====================
     def handle_heartbeat(self, beat):
+        for where, coll in self.collectives.items():
+            if coll.is_stale() and not coll.closed:
+                # hmmm.. this is duplicating code I'm going to have to define
+                # in the close_collective portion.
+                # Sounds like I should push this down to collectives
+                # I think the mistake was giving collectives dispatch
+                pass
         pass
 
     def handle_private_message(self, event):
