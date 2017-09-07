@@ -455,7 +455,14 @@ class Coffeebot():
             })
 
     def handle_public_message(self, event):
-        pass
+        message = event['message']
+        if not message['is_me_message']:
+            command = parse(message['content'])
+            if not command:
+                self.public_say(
+                    "I didn't understand that. Message me for usage.")
+            else:
+                self.command_methods[command](event)
 
     def dispatch(self, event):
         """
