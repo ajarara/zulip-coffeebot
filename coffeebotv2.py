@@ -318,7 +318,25 @@ class Coffeebot():
     def remove_from_collective(self, event):
         con = make_context(event)
         here = make_where(con)
-        pass
+        if here in self.collectives:
+            coll = self.collectives[here]
+            if coll.closed:
+                self.public_say(
+                    ("No one can leave a closed collective. "
+                     "You are free to forfeit your coffee, "
+                     "however, just let the maker know"),
+                    event)
+            elif con.user in coll:
+                # I also need to acknowledge this, as it is
+                # potentially a common operation. emote!
+                coll.remove(con.user)
+                if len(coll) == 0:
+                    self.collectives.pop(here)
+                    self.public_say(
+                        ("Since everyone has left this collective, "
+                         "it is now defunct. A new collective must "
+                         "be opened."),
+                        event)
 
     def state_of_collective(self, event):
         here = make_where(event)
@@ -373,7 +391,6 @@ class Coffeebot():
     def handle_heartbeat(self, beat):
         for where, coll in self.collectives.items():
             if coll.is_stale() and not coll.closed:
-                # we can assume that there is at least one person in here
                 pass
         pass
 
