@@ -227,37 +227,28 @@ class Coffeebot():
 
         # TODO
         self.help_string = """
-        Coffeebot takes a ton of commands, but only publicly.
+Coffeebot takes a ton of commands, but only in a public zulip thread. Any private message will just get you this message again.
 
-            - "@coffeebot init"
+- `@coffeebot init`
 
-                Initialize a collective, with you as the leader. The
-                leader has no fancy functionality but kudos to you for
-                taking the initiative!
+Initialize a collective, with you as the leader. The leader has no fancy functionality but kudos to you for taking the initiative!
 
-            - "@coffeebot yes"
+- `@coffeebot yes`
 
-                Join an open collective. By joining you affirm you want coffee,
-                and are willing to make coffee for up to 2 others.
+Join an open collective. By joining you affirm you want coffee, and are willing to make coffee for up to 2 others.
 
-            - "@coffeebot no"
+- `@coffeebot no`
 
-                Drop your commitment to the collective :disappointed_relieved:.
-                You renounce your claim to coffee, and thus don't have
-                to risk making it.
+Drop your commitment to the collective :disappointed_relieved:. You renounce your claim to coffee, and thus don't have to risk making it. Once a collective is closed, you cannot leave it.
 
-            - "@coffeebot close"
+- `@coffeebot close`
 
-                Close the collective. Only those within it may close it.
+Close the collective. Only those within it may close it.
 
-            - "@coffeebot ping"
+- `@coffeebot ping`
 
-                Ping all those in the collective (usually to let them
-                know coffee is ready). Only the maker may do this, but
-                there's nothing stopping someone from doing it
-                manually.
-
-        """
+Ping all those in the collective (usually to let them know coffee is ready). Only the maker may do this, but there's nothing stopping someone from doing it manually.
+"""  # noqa: E501
         self.client = zulip.Client(
             config_file=path.join(here, config_file))
 
@@ -350,7 +341,8 @@ class Coffeebot():
                 self.public_say(
                     ("No one can leave a closed collective. "
                      "You are free to forfeit your coffee, "
-                     "however, just let the maker know"),
+                     "however, just let the coffee maker {} know").format(
+                         coll.maker),
                     here)
             elif con.user in coll:
                 # I also need to acknowledge this, as it is
@@ -398,7 +390,7 @@ class Coffeebot():
             else:
                 self.public_say(
                     ("This collective isn't closed yet, "
-                     "so Coffeebot refuses to ping."),
+                     "so Coffeebot will not ping it."),
                     here)
 
     def close_collective(self, event):
@@ -418,6 +410,10 @@ class Coffeebot():
                      "grounds of the last collective and has chosen "
                      "@**{}** as the maker! Fulfill your destiny, {}").format(
                          coll.maker, coll.maker.split("(")[0].rstrip()),
+                    here)
+                self.public_say(
+                    ("Once you are done, ping the members of this "
+                     "collective with `@coffeebot ping`"),
                     here)
 
     def candy_cane(self, event):
