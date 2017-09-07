@@ -272,11 +272,12 @@ class Coffeebot():
                 con.user)
             self.public_say(
                 """
-                You've initialized a coffee collective! :tada:
-                Wait for others to join, or say `@coffeebot close`
-                (without the quotes) to close the collective, randomly
-                choose a maker, and have your :coffee:. To join this
-                collective, type `@coffeebot yes` in this thread.
+                You've initialized a coffee collective! :tada: Wait
+                for others to join, for the collective to timeout, or
+                say `@coffeebot close` (without the quotes) to close
+                the collective yourself, randomly choose a maker, and
+                have your :coffee:. To join this collective, type
+                `@coffeebot yes` in this thread.
                 """,
                 event)
 
@@ -284,7 +285,8 @@ class Coffeebot():
         con = make_context(event)
         here = make_where(con)
         if here in self.collectives:
-            if self.collectives[here].closed:
+            coll = self.collectives[here]
+            if coll.closed:
                 self.public_say(
                     # notify user of all open collectives?
                     """
@@ -292,7 +294,7 @@ class Coffeebot():
                     `@coffeebot init` (without the quotes).
                     """,
                     event)
-            elif con.user in self.collectives[here].users:
+            elif con.user in coll.users:
                 self.public_say(
                     """
                     You're already in this collective. Coffeebot
@@ -300,7 +302,7 @@ class Coffeebot():
                     """,
                     event)
             else:
-                self.collectives[here].users.add(con.user)
+                coll.add(con.user)
                 # no need to say anything, but we should acknowledge
                 # the user's joined the collective.
                 # given an event, can we emote on it?
@@ -348,8 +350,7 @@ class Coffeebot():
             self.public_say(
                 """
                 Coffeebot does not know anything about the collectives
-                in this thread. Coffeebot has no persistent storage
-                :cry:
+                in this thread. Coffeebot has no persistent storage. :cry:
                 """,
                 event)
 
@@ -378,7 +379,22 @@ class Coffeebot():
 
     def close_collective(self, event):
         # (Feel free to make tea instead, I won't judge. Much.)
-        pass
+        con = make_context(event)
+        here = make_where(con)
+        if here in self.collectives:
+            coll = self.collectives[here]
+            if coll.closed:
+                self.public_say(
+                    "This collective is already closed!",
+                    event)
+            elif con.user in coll:
+                coll.close()
+                self.public_say(
+                    ("The magnificent Coffeebot has consulted the "
+                     "grounds of the last collective and has chosen "
+                     "@**{}** as the maker! Fulfill your destiny, {}").format(
+                         coll.maker, coll.maker.split("(")[0]).rstrip(),
+                    event)
 
     def candy_cane(self, event):
         # huh does zulip use constant width?
