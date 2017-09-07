@@ -164,7 +164,7 @@ class Coffeebot():
         # used by self.dispatch and self.listen. maps events to handlers
         # this technically could be class level but it provides for a
         # weird interface.
-        self.event_method_map = {
+        self.event_methods = {
             'heartbeat': self.handle_heartbeat,
             'private':   self.handle_private_message,
             'message':   self.handle_public_message,
@@ -174,7 +174,7 @@ class Coffeebot():
         # another map from parsed directives to methods.
         # each method takes an event, and converts it as needed using the
         # Where/Context utility constructors.
-        self.command_method_map = {
+        self.command_methods = {
             'init':   self.init_collective,
             'add':    self.add_to_collective,
             'remove': self.remove_from_collective,
@@ -229,10 +229,14 @@ class Coffeebot():
         pass
 
     def dispatch(self, event):
-        pass
+        """
+        Dispatch event based on its type, sending it to the correct handler.
+        """
+        switch = event['type']
+        self.event_methods[switch](event)
 
     def listen(self):
         self.client.call_on_each_event(
             self.dispatch,
-            event_types=self.event_method_map.keys())
+            event_types=self.event_methods.keys())
 
