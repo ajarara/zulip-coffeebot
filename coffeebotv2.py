@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from collections import namedtuple
 from random import sample
+from pprint import pprint
 from os import path
 import re
 
@@ -209,17 +210,9 @@ class Coffeebot():
     """
     def __init__(self, config_file="zuliprc.conf"):
         here = path.abspath(path.dirname(__file__))
-        # used by self.dispatch and self.listen. maps events to handlers
-        # this technically could be class level but it provides for a
-        # weird interface.
-        self.event_methods = {
-            'heartbeat': self.handle_heartbeat,
-            'private':   self.handle_private_message,
-            'message':   self.handle_public_message,
-        }
 
         # because public messages are the point of interaction, this is
-        # another map from parsed directives to methods.
+        # a map from parsed directives to methods.
         # each method takes an event, and converts it as needed using the
         # Where/Context utility constructors.
         self.command_methods = {
@@ -273,7 +266,6 @@ class Coffeebot():
 
     # ==================== utility ====================
     def public_say(self, content, where):
-        
         self.client.send_message({
             "type": "stream",
             "to": where.stream,
@@ -445,22 +437,24 @@ class Coffeebot():
                          coll.maker, coll.maker.split("(")[0].rstrip()),
                     here)
 
+
     def handle_private_message(self, event):
         message = event['message']
-        if not message['is_me_message']:
-            self.client.send_message({
-                "type": "private",
-                "to": message['sender_email'],
-                "content": self.help_string,
-            })
+        self.client.send_message({
+            "type": "private",
+            "to": message['sender_email'],
+            "content": self.help_string,
+        })
 
     def handle_public_message(self, event):
         message = event['message']
-        if not message['is_me_message']:
+        if message['is_mentioned']:
             command = parse(message['content'])
             if not command:
+                here = make_where(event)
                 self.public_say(
-                    "I didn't understand that. Message me for usage.")
+                    "I didn't understand that. Message me for usage.",
+                    here)
             else:
                 self.command_methods[command](event)
 
@@ -469,10 +463,29 @@ class Coffeebot():
         Dispatch event based on its type, sending it to the correct handler.
         """
         switch = event['type']
-        self.event_methods[switch](event)
+        print("Obtained event: {}".format(event))
+        if switch == 'heartbeat':
+            self.handle_heartbeat(event)
+
+        # never reply to thyself
+        elif switch == 'message' and not event['message']['is_me_message']:
+            kind = event['message']['type']
+            if kind == 'private':
+                self.handle_private_message(event)
+            elif kind == 'stream':
+                self.handle_public_message(event)
 
     def listen(self):
         self.client.call_on_each_event(
             self.dispatch,
-            event_types=self.event_methods.keys())
+            event_types=['heartbeat', 'message', 'reaction'])
 
+
+
+def main():
+    c = Coffeebot()
+    c.listen()
+
+
+if __name__ == '__main__':
+    main()
