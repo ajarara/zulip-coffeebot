@@ -410,10 +410,7 @@ Ping all those in the collective (usually to let them know coffee is ready). Onl
                     here)
 
     def candy_cane(self, event):
-        # huh does zulip use constant width?
-        # \o/
-        #  |
-        # /_\
+        # randomly message a heart? emote a heart?
         pass
 
     # ==================== dispatch ====================
@@ -472,6 +469,20 @@ Ping all those in the collective (usually to let them know coffee is ready). Onl
             self.dispatch,
             event_types=['heartbeat', 'message', 'reaction'])
 
+
+love_strings = {
+    ("    \\o/\n"
+     "     |\n"
+     "    /_\\"),
+    ":heart:",
+    ":hearts",
+    ":yellow_heart:",
+    ":green_heart:",
+    ":blue_heart:",
+    ":two_hearts:",
+    ":revolving_hearts:",
+    "<3"
+    }
 
 def main():
     c = Coffeebot()
