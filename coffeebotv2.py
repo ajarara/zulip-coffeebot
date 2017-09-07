@@ -446,10 +446,12 @@ class Coffeebot():
                     here)
 
     def handle_private_message(self, event):
-        self.client.send_message({
-            "type": "private",
-            "to": event['message']['sender_email'],
-            "content": self.help_string,
+        message = event['message']
+        if not message['is_me_message']:
+            self.client.send_message({
+                "type": "private",
+                "to": message['sender_email'],
+                "content": self.help_string,
             })
 
     def handle_public_message(self, event):
