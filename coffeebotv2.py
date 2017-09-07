@@ -102,7 +102,7 @@ Context = namedtuple("Context", ['stream', 'subject', 'user'])
 
 
 # we can make contexts from zulip events!
-def context(event):
+def make_context(event):
     message = event['message']
     return Context(message['display_recipient'],
                    message['subject'],
@@ -113,12 +113,13 @@ def context(event):
 Where = namedtuple("Where", ['stream', 'subject'])
 
 
-def where(event_or_context):
+def make_where(event_or_context):
     # wheres can be built from a context (a common scenario, since we
-    # use wheres as keys for collectives
+    # often need context to determine if a where is necessary)
+    # primary usage of wheres are to identify collectives
     if isinstance(event_or_context, Context):
-        return Where(context.stream,
-                     context.subject)
+        return Where(event_or_context.stream,
+                     event_or_context.subject)
     message = event_or_context['message']
     return Where(message['display_recipient'],
                  message['subject'])
@@ -129,6 +130,14 @@ def where(event_or_context):
 # situations, so rather than implement half of their actions here and
 # half of their actions in coffeebot, this will just be a fancy dict that
 # coffeebot reaches into and manipulates.
+
+# hmm.. thinking that maybe instead we define forward methods
+# so that we don't have to reach into the users set everytime
+# we want to query or manipulate it..
+
+
+# huh.. in this design there is no need at all to have Collectives
+# care about their stream and subject. Maybe remove them?
 class Collective():
     def __init__(self, leader, stream, subject,
                  max_size=5, timeout_in_mins=15):
@@ -214,18 +223,20 @@ class Coffeebot():
     # ==================== collective interaction ====================
     def init_collective(self, event):
         # in all cases I'll want the where and the context
-        # if I feed Where a context it should handle that.
-        here = Where(event)
+        con = make_context(event)
+        here = make_where(con)
         if (here in self.collectives and
                 not self.collectives[here].closed):
             # ping the user by name?
+            # these are a little too verbose I think.
             self.public_say(
                 """
-                pass
+                The collective in this thread is still open. If you'd
+                like, join this one or start your own in some other
+                thread.
                 """,
                 event)
         else:
-            con = Context(event)
             self.collectives[here] = Collective(
                 con.user,
                 con.stream,
@@ -237,12 +248,36 @@ class Coffeebot():
                 (without the quotes) to close the collective, randomly
                 choose a maker, and have your :coffee:. To join this
                 collective, type `@coffeebot yes` in this thread.
-
                 """,
                 event)
 
     def add_to_collective(self, event):
-        pass
+        con = make_context(event)
+        here = make_where(con)
+        if here in self.collectives:
+            if self.collectives[here].closed:
+                self.public_say(
+                    # notify user of all open collectives?
+                    """
+                    This collective is closed.  Start your own with
+                    `@coffeebot init` (without the quotes).
+                    """,
+                    event)
+            elif con.user in self.collectives[here].users:
+                self.public_say(
+                    """
+                    You're already in this collective. Coffeebot
+                    appreciates the enthusiasm, though.
+                    """,
+                    event)
+            else:
+                self.collectives[here].users.add(con.user)
+                # no need to say anything, but we should acknowledge
+                # the user's joined the collective.
+                # given an event, can we emote on it?
+                pass
+        else:
+            pass
 
     def remove_from_collective(self, event):
         pass
@@ -255,6 +290,10 @@ class Coffeebot():
         pass
 
     def candy_cane(self, event):
+        # huh does zulip use constant width?
+        # \o/
+        #  |
+        # /_\
         pass
 
     # ==================== dispatch ====================
