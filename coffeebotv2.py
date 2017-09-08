@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from collections import namedtuple
-from random import sample
+from random import choice
 from os import path
 import re
 
@@ -149,8 +149,7 @@ class Collective():
     # ==================== collective actions ====================
     def elect_maker(self):
         assert not self.maker
-        # sample returns a list, we just want the first.
-        self.maker = sample(self.users, 1)[0]
+        self.maker = choice(list(self.users))
 
     def close(self):
         assert not self.closed
@@ -267,8 +266,13 @@ Ping all those in the collective (usually to let them know coffee is ready). Onl
             "content": content,
         })
 
-    def is_me_message(self, event):
-        return self.client.email == event['message']['sender_email']
+    def is_bot_message(self, event):
+        sender_email = event['message']['sender_email']
+        # currently all bots have "-bot@" in their email, at least on
+        # Recurses realm.  since this is itself a bot, the second
+        # condition alone is enough but this is kept in here in the
+        # case where this policy differs by realm
+        return self.client.email == sender_email or "-bot@" in sender_email
 
     # ==================== collective interaction ====================
     def init_collective(self, event):
@@ -410,6 +414,13 @@ Ping all those in the collective (usually to let them know coffee is ready). Onl
 
     def candy_cane(self, event):
         # randomly message a heart? emote a heart?
+        action = choice(['message', 'emote'])
+        if action == 'emote':
+            # is there a way to send reactions?! :(
+            pass
+        elif action == 'message':
+            # love strings are defined below
+            self.public_say(choice(CANES), event)
         pass
 
     # ==================== dispatch ====================
@@ -454,9 +465,8 @@ Ping all those in the collective (usually to let them know coffee is ready). Onl
         if switch == 'heartbeat':
             self.handle_heartbeat(event)
 
-        # never reply to thyself
-        # event['message']['is_me_message'] does not get set...
-        elif switch == 'message' and not self.is_me_message(event):
+        # never reply to thyself, or other bots.
+        elif switch == 'message' and not self.is_bot_message(event):
             kind = event['message']['type']
             if kind == 'private':
                 self.handle_private_message(event)
@@ -469,7 +479,7 @@ Ping all those in the collective (usually to let them know coffee is ready). Onl
             event_types=['heartbeat', 'message', 'reaction'])
 
 
-love_strings = {
+CANES = {
     ("    \\o/\n"
      "     |\n"
      "    /_\\"),
@@ -480,8 +490,9 @@ love_strings = {
     ":blue_heart:",
     ":two_hearts:",
     ":revolving_hearts:",
-    "<3"
+    "<3",
     }
+
 
 def main():
     c = Coffeebot()
