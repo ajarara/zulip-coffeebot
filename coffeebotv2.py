@@ -475,7 +475,8 @@ Ping all those in the collective (usually to let them know coffee is ready). Onl
     def listen(self):
         self.client.call_on_each_event(
             self.dispatch,
-            event_types=['heartbeat', 'message', 'reaction'])
+            # 'reaction' planned but not currently supported
+            event_types=['heartbeat', 'message'])
 
 
 CANES = {
