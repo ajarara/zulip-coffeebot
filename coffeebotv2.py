@@ -402,14 +402,11 @@ Ping all those in the collective (usually to let them know coffee is ready). Onl
                 coll.close()
                 self.public_say(
                     ("The magnificent Coffeebot has consulted the "
-                     "grounds of the last collective and has chosen "
-                     "@**{}** as the maker! Go forth and fulfill "
-                     "your destiny.").format(
-                         coll.maker, coll.maker.split("(")[0].rstrip()),
-                    here)
-                self.public_say(
-                    ("Once you are done, ping the members of this "
-                     "collective with `@coffeebot ping`"),
+                     "grounds of the first collective and has chosen "
+                     "@**{}** as the maker! Go forth, chosen one, and "
+                     "fulfill your destiny.\n\nOnce you are done making"
+                     "coffee, ping the members of this collective with"
+                     "`@coffeebot ping`").format(coll.maker),
                     here)
 
     def candy_cane(self, event):
@@ -432,8 +429,10 @@ Ping all those in the collective (usually to let them know coffee is ready). Onl
                 coll.public_say(
                     ("The Coffeebot has grown impatient and has "
                      "closed this collective. Coffeebot has chosen "
-                     "@**{}** as the maker! Fullfill your destiny, {}").format(
-                         coll.maker, coll.maker.split("(")[0].rstrip()),
+                     "@**{}** as the maker! Go forth, chosen one, and "
+                     "fullfill your destiny.\n\nOnce you are done "
+                     "making coffee, ping the members of this collective"
+                     "with `@coffeebot ping`").format(coll.maker),
                     here)
 
     def handle_private_message(self, event):
