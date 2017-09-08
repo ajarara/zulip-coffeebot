@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta
 from collections import namedtuple
 from random import sample
-from pprint import pprint
 from os import path
 import re
 
