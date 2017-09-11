@@ -95,10 +95,11 @@ def parse(message):
     Given a message, return the first match obtained from
     get_parse_map. If no matches are obtained return None.
     """
-    downcased = message.lower()
+    downcased_by_line = message.lower().split(sep="\n")
     for reg, command in get_parse_map():
-        if reg.match(downcased):
-            return command
+        for line in downcased_by_line:
+            if reg.match(line):
+                return command
 
 
 # ==================== Coffeebot primitives ====================
@@ -448,6 +449,12 @@ Questions? Message @**Ahmad Jarara** or use the source: https://github.com/alpho
         message = event['message']
         if message['is_mentioned']:
             command = parse(message['content'])
+
+            # if (not command and
+            #         re.match(".*I\slove\syou\s{}.*".format(NAME),
+            #                  message['content'])):
+            #     command = 'love'
+
             if not command:
                 here = make_where(event)
                 self.public_say(
