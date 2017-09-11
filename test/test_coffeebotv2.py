@@ -98,3 +98,7 @@ def test_random_maker(s1, s2, s3):
     assert coll.maker in {s1, s2, s3}
 
 
+
+# ==================== coffeebot ====================
+def make_fake_coffeebot():
+    pass
