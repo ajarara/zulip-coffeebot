@@ -1,4 +1,4 @@
-from coffeebotv2 import parse
+from coffeebotv2 import parse, make_where, make_context
 from coffeebotv2 import Where, Context, Collective, Coffeebot
 
 from hypothesis import given
@@ -14,6 +14,7 @@ def test_hypothesis(s):
         return x
     assert s == ref(s)
 
+
 # ==================== parsing ====================
 
 @given(text(), text())
@@ -25,6 +26,37 @@ def test_parse(s1, s2):
     for ph in phrases:
         assert parse(s1 + ph + s2)
 
+
+# ==================== utility classes ====================
+
+def make_event(display_recipient, subject, sender_full_name):
+    return {
+        'message': {
+            'display_recipient': display_recipient,
+            'subject': subject,
+            'sender_full_name': sender_full_name,
+        },
+    }
+
+
+@given(text(), text(), text())
+def test_context(display_recipient, subject, sender_full_name):
+    event = make_event(display_recipient, subject, sender_full_name)
+    assert isinstance(make_context(event), Context)
+
+
+@given(text(), text(), text())
+def test_where(display_recipient, subject, sender_full_name):
+    event = make_event(display_recipient, subject, sender_full_name)
+
+    here = make_where(event)
+    assert isinstance(here, Where)
+    assert here.stream == display_recipient
+    assert here.subject == subject
+
+    # we should also be able to make wheres from contexts.
+    here_con = make_where(make_context(event))
+    assert here_con == here
 
 
 # ==================== collectives ====================
