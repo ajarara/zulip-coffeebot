@@ -48,14 +48,41 @@ COMMAND_REGS = (
     )),
 )
 
+HELP_STRING = """
+COFFEEBOT acts when it is publicly pinged with a command. On private message, Coffeebot will just send this message.
+
+- "@coffeebot init"
+
+Initialize a collective, with you as the leader. The leader has no fancy functionality but kudos to you for taking the initiative!
+
+- "@coffeebot yes"
+
+Join an open collective. By joining you affirm you want coffee, and are willing to make coffee for up to 2 others.
+
+- "@coffeebot no"
+
+Drop your commitment to the collective :disappointed_relieved:. You renounce your claim to coffee, and thus don't have to risk making it. Once a collective is closed, you cannot leave it.
+
+- "@coffeebot close"
+
+Close the collective. Only those within it may close it.
+
+- "@coffeebot ping"
+
+Ping all those in the collective (usually to let them know coffee is ready). Only the maker may do this, but there's nothing stopping someone from doing it manually.
+
+Questions? Message @**Ahmad Jarara** or use the source: https://github.com/alphor/zulip-coffeebot
+"""  # noqa: E501
+
 
 # soon enough I should move the default format to a more readable reg
-def reg_wrap(regex, fmt=r"^.*(?![`'\"])@\*\*{}\*\*\s+{}(?![`'\"]).*$"):
+def reg_wrap(regex, fmt=r"^.*(?![`'\"])@\*\*{}\*\*\s+{}(?![`'\"]).*$",
+             name=NAME):
     """
     Wrap a regex in another, using fmt. Default makes it so
     that any regex quoted does not summon coffeebot, for example demos.
     """
-    return re.compile(fmt.format(NAME, regex))
+    return re.compile(fmt.format(name, regex))
 
 
 # this is populated by the below function.
@@ -212,7 +239,8 @@ class Coffeebot():
     Coffeebot's job is to take in requests from the API and attempt to
     execute them in the correct collective.
     """
-    def __init__(self, config_file="zuliprc.conf"):
+    def __init__(self, config_file="zuliprc.conf", name=NAME,
+                 help_string=HELP_STRING):
         here = path.abspath(path.dirname(__file__))
 
         # because public messages are the point of interaction, this is
@@ -229,31 +257,8 @@ class Coffeebot():
             'love':   self.candy_cane,
         }
 
-        self.help_string = """
-Coffeebot acts when it is publicly pinged with a command. On private message, Coffeebot will just send this message.
+        self.help_string = help_string
 
-- "@coffeebot init"
-
-Initialize a collective, with you as the leader. The leader has no fancy functionality but kudos to you for taking the initiative!
-
-- "@coffeebot yes"
-
-Join an open collective. By joining you affirm you want coffee, and are willing to make coffee for up to 2 others.
-
-- "@coffeebot no"
-
-Drop your commitment to the collective :disappointed_relieved:. You renounce your claim to coffee, and thus don't have to risk making it. Once a collective is closed, you cannot leave it.
-
-- "@coffeebot close"
-
-Close the collective. Only those within it may close it.
-
-- "@coffeebot ping"
-
-Ping all those in the collective (usually to let them know coffee is ready). Only the maker may do this, but there's nothing stopping someone from doing it manually.
-
-Questions? Message @**Ahmad Jarara** or use the source: https://github.com/alphor/zulip-coffeebot
-"""  # noqa: E501
         self.client = zulip.Client(
             config_file=path.join(here, config_file))
 
