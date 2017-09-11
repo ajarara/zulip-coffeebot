@@ -153,7 +153,8 @@ class Collective():
 
     def close(self):
         assert not self.closed
-        self.elect_maker()
+        if self.users:
+            self.elect_maker()
         self.closed = True
 
     # ==================== forwarding methods ====================
@@ -347,11 +348,10 @@ Questions? Message @**Ahmad Jarara** or use the source: https://github.com/alpho
                 coll.remove(con.user)
                 self.emote_reply("heavy_check_mark", event)
                 if len(coll) == 0:
-                    self.collectives.pop(here)
+                    self.collectives.close()
                     self.public_say(
                         ("Since everyone has left this collective, "
-                         "it is now defunct. A new collective must "
-                         "be opened."),
+                         "it is now closed."),
                         here)
 
     def state_of_collective(self, event):
