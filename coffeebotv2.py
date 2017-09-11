@@ -159,10 +159,13 @@ def make_where(event_or_context):
                  message['subject'])
 
 
-# collectives are groups of people interested in making coffee.
 class Collective():
+    """
+    Collectives are groups of people interested in making coffee.
+    """
     def __init__(self, leader, max_size=5, timeout_in_mins=15):
         # TODO: Check max_size and timeout_in_mins for reasonable values
+        # when arguments are exposed
         self.leader = leader
         self.max_size = max_size
 
@@ -416,16 +419,21 @@ class Coffeebot():
                      "`@coffeebot ping`").format(coll.maker),
                     here)
 
-    def candy_cane(self, event):
+    # _det is determinism for testing
+    def candy_cane(self, event, _det=None):
         # randomly message a heart? emote a heart?
-        action = choice(['message', 'emote'])
+        possibilities = ('message', 'emote')
+        if _det in possibilities:
+            action = _det
+        else:
+            action = choice(['message', 'emote'])
+
         if action == 'emote':
             # is there a way to send reactions?! :(
             pass
         elif action == 'message':
             # love strings are defined below
             self.public_say(choice(CANES), event)
-        pass
 
     # ==================== dispatch ====================
     def handle_heartbeat(self, beat):
