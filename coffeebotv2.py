@@ -270,6 +270,10 @@ class Coffeebot():
 
     # ==================== API ====================
     def public_say(self, content, where):
+        """
+        >>> isinstance(where, Where)
+        True
+        """
         self.client.send_message({
             "type": "stream",
             "to": where.stream,
@@ -284,6 +288,15 @@ class Coffeebot():
             "messages/{}/emoji_reactions/{}".format(
                 msg, emote),
             method='PUT')
+
+    # we always send a help_string, independent of context.
+    def private_say(self, event):
+        message = event['message']
+        self.client.send_message({
+            "type": "private",
+            "to": message['sender_email'],
+            "content": self.help_string,
+        })
 
     # ==================== utility ====================
     def is_bot_message(self, event):
@@ -452,12 +465,13 @@ class Coffeebot():
                     here)
 
     def handle_private_message(self, event):
-        message = event['message']
-        self.client.send_message({
-            "type": "private",
-            "to": message['sender_email'],
-            "content": self.help_string,
-        })
+        """
+        For now, pass along the event to private_say, which'll send a
+        help string.
+
+        Coffeebot doesn't do insider coffee making.
+        """
+        self.private_say(event)
 
     def handle_public_message(self, event):
         message = event['message']
