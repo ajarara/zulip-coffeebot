@@ -61,15 +61,16 @@ def test_where(display_recipient, subject, sender_full_name):
 
 # ==================== collectives ====================
 
-def test_coll_init():
-    coll = Collective("frog")
-    assert "frog" in coll
+@given(text())
+def test_coll_init(leader):
+    coll = Collective(leader)
+    assert leader in coll
     assert len(coll) == 1
 
-
-def test_coll_immediate_leave():
-    coll = Collective("frog")
-    coll.remove("frog")
+@given(text())
+def test_coll_immediate_leave(leader):
+    coll = Collective(leader)
+    coll.remove(leader)
     assert coll.maker is None
     assert not coll.users
     assert not coll.closed
@@ -78,3 +79,22 @@ def test_coll_immediate_leave():
     assert coll.maker is None
     assert not coll.users
     assert coll.closed
+
+
+@given(text())
+def test_elect_maker(leader):
+    coll = Collective(leader)
+    assert coll.maker is None
+    coll.elect_maker()
+    assert coll.maker is leader
+
+
+@given(text(), text(), text())
+def test_random_maker(s1, s2, s3):
+    coll = Collective(s1, max_size=3)
+    coll.add(s2)
+    coll.add(s3)
+    coll.elect_maker()
+    assert coll.maker in {s1, s2, s3}
+
+
