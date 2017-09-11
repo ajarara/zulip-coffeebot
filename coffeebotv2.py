@@ -227,29 +227,30 @@ class Coffeebot():
             'love':   self.candy_cane,
         }
 
-        # TODO
         self.help_string = """
-Coffeebot takes a ton of commands, but only in a public zulip thread. Any private message will just get you this message again.
+Coffeebot acts when it is publicly pinged with a command. On private message, Coffeebot will just send this message.
 
-- `@coffeebot init`
+- "@coffeebot init"
 
 Initialize a collective, with you as the leader. The leader has no fancy functionality but kudos to you for taking the initiative!
 
-- `@coffeebot yes`
+- "@coffeebot yes"
 
 Join an open collective. By joining you affirm you want coffee, and are willing to make coffee for up to 2 others.
 
-- `@coffeebot no`
+- "@coffeebot no"
 
 Drop your commitment to the collective :disappointed_relieved:. You renounce your claim to coffee, and thus don't have to risk making it. Once a collective is closed, you cannot leave it.
 
-- `@coffeebot close`
+- "@coffeebot close"
 
 Close the collective. Only those within it may close it.
 
-- `@coffeebot ping`
+- "@coffeebot ping"
 
 Ping all those in the collective (usually to let them know coffee is ready). Only the maker may do this, but there's nothing stopping someone from doing it manually.
+
+Questions? Message @**Ahmad Jarara** or use the source: https://github.com/alphor/zulip-coffeebot
 """  # noqa: E501
         self.client = zulip.Client(
             config_file=path.join(here, config_file))
@@ -265,6 +266,14 @@ Ping all those in the collective (usually to let them know coffee is ready). Onl
             "subject": where.subject,
             "content": content,
         })
+
+    # not available in the zulip API.
+    def emote_reply(self, emote, event):
+        msg = event['message']['id']
+        self.client.call_endpoint(
+            "messages/{}/emoji_reactions/{}".format(
+                msg, emote),
+            method='PUT')
 
     def is_bot_message(self, event):
         sender_email = event['message']['sender_email']
@@ -285,19 +294,17 @@ Ping all those in the collective (usually to let them know coffee is ready). Onl
             self.public_say(
                 ("The collective in this thread is still open. If you'd "
                  "like, join this one or start your own in some other "
-                 "thread. "),
+                 "thread."),
                 here)
         else:
-            self.collectives[here] = Collective(
-                con.user)
+            new_coll = Collective(con.user)
+            self.collectives[here] = new_coll
             self.public_say(
-                ("You've initialized a coffee collective! :tada:\n\nWait "
-                 "for others to join, for the collective to timeout, or "
-                 "say `@coffeebot close` (without the quotes) to close "
-                 "the collective yourself. \n\nOnce closed, Coffeebot will "
-                 "choose a maker, and you all will soon "
-                 "have your :coffee:. To join this collective, type "
-                 "`@coffeebot yes` in this thread."),
+                ("You've initialized a coffee collective! :tada:\n\n "
+                 "This collective can take {} other members (you can join by "
+                 "typing '@**coffeebot** yes'). Type '@**coffeebot** help' "
+                 "or PM me for usage details.").format(
+                     new_coll.max_size - 1),
                 here)
 
     def add_to_collective(self, event):
@@ -317,12 +324,7 @@ Ping all those in the collective (usually to let them know coffee is ready). Onl
                     here)
             else:
                 coll.add(con.user)
-                # no need to say anything, but we should acknowledge
-                # the user's joined the collective.
-                # given an event, can we emote on it?
-                # :heavy_check_mark: sounds like a good candidate
-                # this is suddenly the most important thing about the bot.
-                pass
+                self.emote_reply("heavy_check_mark", event)
         else:
             self.public_say(
                 ("There is no recently active collective in this "
@@ -342,9 +344,8 @@ Ping all those in the collective (usually to let them know coffee is ready). Onl
                          coll.maker),
                     here)
             elif con.user in coll:
-                # I also need to acknowledge this, as it is
-                # potentially a common operation. emote!
                 coll.remove(con.user)
+                self.emote_reply("heavy_check_mark", event)
                 if len(coll) == 0:
                     self.collectives.pop(here)
                     self.public_say(
