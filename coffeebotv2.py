@@ -231,7 +231,6 @@ class Collective():
                 out.append("Status: Closing soon!")
             else:
                 out.append("Status: {} minutes left".format(minutes_left))
-
         return "\n".join(out)
 
 
@@ -244,7 +243,6 @@ class Coffeebot():
     """
     def __init__(self, config_file="zuliprc.conf", name=NAME,
                  help_string=HELP_STRING):
-        here = path.abspath(path.dirname(__file__))
 
         # because public messages are the point of interaction, this is
         # a map from parsed directives to methods.
@@ -262,13 +260,15 @@ class Coffeebot():
 
         self.help_string = help_string
 
-        self.client = zulip.Client(
-            config_file=path.join(here, config_file))
+        if config_file:
+            here = path.abspath(path.dirname(__file__))
+            self.client = zulip.Client(
+                config_file=path.join(here, config_file))
 
         # besides IO, this is the only state in Coffeebot.
         self.collectives = {}
 
-    # ==================== utility ====================
+    # ==================== API ====================
     def public_say(self, content, where):
         self.client.send_message({
             "type": "stream",
@@ -285,6 +285,7 @@ class Coffeebot():
                 msg, emote),
             method='PUT')
 
+    # ==================== utility ====================
     def is_bot_message(self, event):
         sender_email = event['message']['sender_email']
         # currently all bots have "-bot@" in their email, at least on
