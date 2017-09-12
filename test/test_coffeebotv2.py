@@ -4,6 +4,7 @@ from coffeebotv2 import Where, Context, Collective, Coffeebot
 from hypothesis import given
 from hypothesis.strategies import from_regex, text
 
+import pytest
 
 def test_correct():
     assert True
@@ -98,7 +99,28 @@ def test_random_maker(s1, s2, s3):
     assert coll.maker in {s1, s2, s3}
 
 
-
 # ==================== coffeebot ====================
-def make_fake_coffeebot():
+
+def _fake_public_say(content, where):
+    # these are assertion checks I want on every public event
+    assert isinstance(content, str)
+    assert isinstance(where, Where)
+    assert isinstance(where.stream, str)
+    assert isinstance(where.subject, str)
+
+
+def _fake_private_say(event):
     pass
+
+
+def _fake_emoji_reply(emoji, event):
+    pass
+
+
+@pytest.fixture
+def bot():
+    coff = Coffeebot(config_file=None)
+    coff.public_say = _fake_public_say
+    coff.private_say = _fake_private_say
+    coff.emoji_reply = _fake_emoji_reply
+    return coff
