@@ -163,7 +163,7 @@ class Collective():
     """
     Collectives are groups of people interested in making coffee.
     """
-    def __init__(self, leader, max_size=5, timeout_in_mins=15):
+    def __init__(self, leader, max_size=3, timeout_in_mins=15):
         # TODO: Check max_size and timeout_in_mins for reasonable values
         # when arguments are exposed
         self.leader = leader
@@ -223,14 +223,14 @@ class Collective():
         if self.closed:
             out.append("Status: Closed")
         else:
-            # this code makes me sad.
+            # this part makes me sad.
             minutes_left = int(
                 (self.timeout_in_mins -
                  (datetime.now() - self.time_created)).seconds / 60)
             if minutes_left == 0:
                 out.append("Status: Closing soon!")
             else:
-                out.append("Status: {} minutes left".format(minutes_left))
+                out.append("Until timeout: {} minutes".format(minutes_left))
         return "\n".join(out)
 
 
