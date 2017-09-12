@@ -33,7 +33,7 @@ COMMAND_REGS = (
         # "out",
     )),
     ('state', (
-        "state",
+        "state|(?:us)?",
     )),
     ('ping', (
         "ping",
@@ -71,7 +71,7 @@ Close the collective. Only those within it may close it.
 
 Ping all those in the collective (usually to let them know coffee is ready). Only the maker may do this, but there's nothing stopping someone from doing it manually.
 
-Questions? Message @**Ahmad Jarara** or use the source: https://github.com/alphor/zulip-coffeebot
+Questions? Bugs? Message @**Ahmad Jarara** or use the source: https://github.com/alphor/zulip-coffeebot
 """.format(NAME)  # noqa: E501
 
 
@@ -371,9 +371,9 @@ class Coffeebot():
                     here)
             elif con.user in coll:
                 coll.remove(con.user)
-                self.emoji_reply("heavy_check_mark", event)
+                self.emoji_reply("thumbs_up", event)
                 if len(coll) == 0:
-                    self.collectives.close()
+                    coll.close()
                     self.public_say(
                         ("Since everyone has left this collective, "
                          "it is now closed."),
@@ -400,7 +400,7 @@ class Coffeebot():
             if coll.closed:
                 if coll.maker == con.user:
                     self.public_say(
-                        "**Pinging all in the collective!!**\n\n {}".format(
+                        "**Coffee is ready!**\n\n {}".format(
                             coll.ping_string()),
                         here)
                 else:
@@ -430,9 +430,10 @@ class Coffeebot():
                 coll.close()
                 self.public_say(
                     ("Coffeebot has deliberated long and hard (almost {} μs!) "
-                     "and has chosen {} as the coffee maker.\n\nOnce you are "
-                     "done making coffee, ping the members of this collective "
-                     "with \"**@coffeebot** ping\" in this thread.").format(
+                     "and has chosen @**{}** as the coffee maker.\n\nOnce you "
+                     "are done making coffee, ping the members of this "
+                     "collective with \"@**coffeebot** ping\" in this "
+                     "thread.").format(
                          str(random.random())[:6],
                          coll.maker),
                     here)
