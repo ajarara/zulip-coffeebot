@@ -281,14 +281,6 @@ class Coffeebot():
             "content": content,
         })
 
-    # not available in the zulip API.
-    def emote_reply(self, emote, event):
-        msg = event['message']['id']
-        self.client.call_endpoint(
-            "messages/{}/emoji_reactions/{}".format(
-                msg, emote),
-            method='PUT')
-
     # we always send a help_string, independent of context.
     def private_say(self, event):
         message = event['message']
@@ -297,6 +289,14 @@ class Coffeebot():
             "to": message['sender_email'],
             "content": self.help_string,
         })
+
+    # not available in the zulip API.
+    def emoji_reply(self, emoji, event):
+        msg = event['message']['id']
+        self.client.call_endpoint(
+            "messages/{}/emoji_reactions/{}".format(
+                msg, emoji),
+            method='PUT')
 
     # ==================== utility ====================
     def is_bot_message(self, event):
@@ -348,7 +348,7 @@ class Coffeebot():
                     here)
             else:
                 coll.add(con.user)
-                self.emote_reply("heavy_check_mark", event)
+                self.emoji_reply("heavy_check_mark", event)
         else:
             self.public_say(
                 ("There is no recently active collective in this "
@@ -369,7 +369,7 @@ class Coffeebot():
                     here)
             elif con.user in coll:
                 coll.remove(con.user)
-                self.emote_reply("heavy_check_mark", event)
+                self.emoji_reply("heavy_check_mark", event)
                 if len(coll) == 0:
                     self.collectives.close()
                     self.public_say(
@@ -436,13 +436,13 @@ class Coffeebot():
     # _det is determinism for testing
     def candy_cane(self, event, _det=None):
         # randomly message a heart? emote a heart?
-        possibilities = ('message', 'emote')
+        possibilities = ('message', 'emoji')
         if _det in possibilities:
             action = _det
         else:
-            action = choice(['message', 'emote'])
+            action = choice(['message', 'emoji'])
 
-        if action == 'emote':
+        if action == 'emoji':
             # is there a way to send reactions?! :(
             pass
         elif action == 'message':
