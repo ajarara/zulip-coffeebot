@@ -1,6 +1,8 @@
 from coffeebotv2 import parse, make_where, make_context
 from coffeebotv2 import Where, Context, Collective, Coffeebot
 
+from collections import namedtuple
+
 from hypothesis import given
 from hypothesis.strategies import from_regex, text
 
@@ -110,12 +112,27 @@ def _fake_public_say(content, where):
 
 
 def _fake_private_say(event):
+    # in this case I'm asserting on input.
+    # the problem with this is that I pass this along
+    # any enforcing I place here must be arranged in tests
+    # ... idk.
+
+    # assert isinstance(event, dict)
+    # assert 'message' in event
+    # assert 'sender_email' in event['message']
     pass
 
 
 def _fake_emoji_reply(emoji, event):
+    assert len(emoji.split()) == 1
+    # everything else is a function of the event. won't test it.
     pass
 
+
+# this isn't called by anything inside coffeebot, but is here
+# for completeness
+def _fake_listen():
+    pass
 
 @pytest.fixture
 def bot():
@@ -123,4 +140,6 @@ def bot():
     coff.public_say = _fake_public_say
     coff.private_say = _fake_private_say
     coff.emoji_reply = _fake_emoji_reply
+    fake_client = namedtuple("Fake_client", ["email"])
+    coff.client = fake_client("totally-not-bot@recurse.com")
     return coff
