@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from collections import namedtuple
-from random import choice
 from os import path
+import random
 import re
 
 # external dep
@@ -49,30 +49,30 @@ COMMAND_REGS = (
 )
 
 HELP_STRING = """
-COFFEEBOT acts when it is publicly pinged with a command. On private message, Coffeebot will just send this message.
+{0} acts when it is publicly pinged with a command. On private message, Coffeebot will just send this message.
 
-- "@coffeebot init"
+- "@{0} init"
 
 Initialize a collective, with you as the leader. The leader has no fancy functionality but kudos to you for taking the initiative!
 
-- "@coffeebot yes"
+- "@{0} yes"
 
 Join an open collective. By joining you affirm you want coffee, and are willing to make coffee for up to 2 others.
 
-- "@coffeebot no"
+- "@{0} no"
 
 Drop your commitment to the collective :disappointed_relieved:. You renounce your claim to coffee, and thus don't have to risk making it. Once a collective is closed, you cannot leave it.
 
-- "@coffeebot close"
+- "@{0} close"
 
 Close the collective. Only those within it may close it.
 
-- "@coffeebot ping"
+- "@{0} ping"
 
 Ping all those in the collective (usually to let them know coffee is ready). Only the maker may do this, but there's nothing stopping someone from doing it manually.
 
 Questions? Message @**Ahmad Jarara** or use the source: https://github.com/alphor/zulip-coffeebot
-"""  # noqa: E501
+""".format(NAME)  # noqa: E501
 
 
 # soon enough I should move the default format to a more readable reg
@@ -180,7 +180,7 @@ class Collective():
     # ==================== collective actions ====================
     def elect_maker(self):
         assert not self.maker
-        self.maker = choice(list(self.users))
+        self.maker = random.choice(list(self.users))
 
     def close(self):
         assert not self.closed
@@ -425,12 +425,12 @@ class Coffeebot():
             elif con.user in coll:
                 coll.close()
                 self.public_say(
-                    ("The magnificent Coffeebot has consulted the "
-                     "grounds of the first collective and has chosen "
-                     "@**{}** as the maker! Go forth, chosen one, and "
-                     "fulfill your destiny.\n\nOnce you are done making"
-                     "coffee, ping the members of this collective with"
-                     "`@coffeebot ping`").format(coll.maker),
+                    ("Coffeebot has deliberated long and hard (over {} μs!) "
+                     "and has chosen {} as the coffee maker.\n\nOnce you are "
+                     "done making coffee, ping the members of this collective "
+                     "with \"**@coffeebot** ping\"").format(
+                         random.random()[:6],
+                         coll.maker)
                     here)
 
     # _det is determinism for testing
@@ -440,14 +440,14 @@ class Coffeebot():
         if _det in possibilities:
             action = _det
         else:
-            action = choice(['message', 'emoji'])
+            action = random.choice(['message', 'emoji'])
 
         if action == 'emoji':
             # is there a way to send reactions?! :(
             pass
         elif action == 'message':
             # love strings are defined below
-            self.public_say(choice(CANES), event)
+            self.public_say(random.choice(CANES), event)
 
     # ==================== dispatch ====================
     def handle_heartbeat(self, beat):
