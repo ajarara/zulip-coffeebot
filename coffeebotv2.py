@@ -317,8 +317,8 @@ class Coffeebot():
             # these are a little too verbose I think.
             self.public_say(
                 ("The collective in this thread is still open. If you'd "
-                 "like, join this one or start your own in some other "
-                 "thread."),
+                 "like, join this one with \"@**coffeebot** yes\" or "
+                 "start your own in some other thread."),
                 here)
         else:
             new_coll = Collective(con.user)
@@ -326,8 +326,8 @@ class Coffeebot():
             self.public_say(
                 ("You've initialized a coffee collective! :tada:\n\n "
                  "This collective can take {} other members (you can join by "
-                 "typing '@**coffeebot** yes'). Type '@**coffeebot** help' "
-                 "or PM me for usage details.").format(
+                 "typing \"@**coffeebot** yes\" or \"@**coffeebot** join\"). "
+                 "For more usage details, send me a private message.").format(
                      new_coll.max_size - 1),
                 here)
 
@@ -340,7 +340,8 @@ class Coffeebot():
                 self.public_say(
                     # notify user of all open collectives?
                     ("This collective is closed.  Start your own with "
-                     "`@coffeebot init` (without the quotes)."), event)
+                     "\"@**coffeebot** init\" \n\nFor further details, "
+                     "send me a private message."), event)
             elif con.user in coll.users:
                 self.public_say(
                     ("You're already in this collective. Coffeebot "
@@ -348,11 +349,12 @@ class Coffeebot():
                     here)
             else:
                 coll.add(con.user)
-                self.emoji_reply("heavy_check_mark", event)
+                self.emoji_reply("thumbs_up", event)
         else:
             self.public_say(
                 ("There is no recently active collective in this "
-                 "thread. Make a new one! PM me for details on how."),
+                 "thread. Make a new one with \"@**coffeebot** init\"! "
+                 "\n\nFor further details, send me a private message."),
                 here)
 
     def remove_from_collective(self, event):
@@ -363,8 +365,8 @@ class Coffeebot():
             if coll.closed:
                 self.public_say(
                     ("No one can leave a closed collective. "
-                     "You are free to forfeit your coffee, "
-                     "however, just let the coffee maker {} know").format(
+                     "You are free to forfeit your coffee "
+                     "of course, just let the coffee maker, {}, know").format(
                          coll.maker),
                     here)
             elif con.user in coll:
@@ -398,18 +400,20 @@ class Coffeebot():
             if coll.closed:
                 if coll.maker == con.user:
                     self.public_say(
-                        "*Pinging all in the collective!!*\n {}".format(
+                        "**Pinging all in the collective!!**\n\n {}".format(
                             coll.ping_string()),
                         here)
                 else:
                     self.public_say(
-                        "Only the coffee maker, {}, may ping.".format(
+                        "Only {} (the coffee maker) may ping.".format(
                             coll.maker),
                         here)
             else:
+                # eh I could see how this could be annoying
+                # if you're in a rush or something.
                 self.public_say(
                     ("This collective isn't closed yet, "
-                     "so Coffeebot will not ping it."),
+                     "so Coffeebot sees no reason to ping it."),
                     here)
 
     def close_collective(self, event):
@@ -425,12 +429,12 @@ class Coffeebot():
             elif con.user in coll:
                 coll.close()
                 self.public_say(
-                    ("Coffeebot has deliberated long and hard (over {} μs!) "
+                    ("Coffeebot has deliberated long and hard (almost {} μs!) "
                      "and has chosen {} as the coffee maker.\n\nOnce you are "
                      "done making coffee, ping the members of this collective "
-                     "with \"**@coffeebot** ping\"").format(
-                         random.random()[:6],
-                         coll.maker)
+                     "with \"**@coffeebot** ping\" in this thread.").format(
+                         str(random.random())[:6],
+                         coll.maker),
                     here)
 
     # _det is determinism for testing
@@ -457,9 +461,8 @@ class Coffeebot():
                 coll.close()
                 coll.public_say(
                     ("The Coffeebot has grown impatient and has "
-                     "closed this collective. Coffeebot has chosen "
-                     "@**{}** as the maker! Go forth, chosen one, and "
-                     "fullfill your destiny.\n\nOnce you are done "
+                     "closed this collective and has chosen "
+                     "@**{}** as the maker.\n\nOnce you are done "
                      "making coffee, ping the members of this collective"
                      "with `@coffeebot ping`").format(coll.maker),
                     here)
