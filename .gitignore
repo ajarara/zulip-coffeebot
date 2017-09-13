@@ -1,1 +1,5 @@
 zuliprc.conf
+.cache
+.hypothesis
+dist
+zulip_coffee.egg-info
