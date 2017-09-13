@@ -219,7 +219,6 @@ class Collective():
             self.max_size - len(self.users)))
         out.append("Time created: {:%A, %I:%M:%S %p}".format(
             self.time_created))
-
         if self.closed:
             out.append("Status: Closed")
         else:
@@ -417,7 +416,6 @@ class Coffeebot():
                     here)
 
     def close_collective(self, event):
-        # (Feel free to make tea instead, I won't judge. Much.)
         con = make_context(event)
         here = make_where(con)
         if here in self.collectives:

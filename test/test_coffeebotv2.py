@@ -1,5 +1,6 @@
 from coffeebotv2 import parse, make_where, make_context
 from coffeebotv2 import Where, Context, Collective, Coffeebot
+from coffeebotv2 import NAME
 
 from collections import namedtuple
 
@@ -101,7 +102,7 @@ def test_random_maker(s1, s2, s3):
     assert coll.maker in {s1, s2, s3}
 
 
-# ==================== coffeebot ====================
+# ==================== coffeebot API mocks ====================
 
 def _fake_public_say(content, where):
     # these are assertion checks I want on every public event
@@ -112,13 +113,17 @@ def _fake_public_say(content, where):
 
 
 def _fake_private_say(event):
-    # in this case I'm asserting on input.
-    # the problem with this is that I pass this along
-    # any enforcing I place here must be arranged in tests
-    # ... idk.
+    # in this case I'm asserting on input, since
+    # any private message yields an invariant of "here's the help string"
+    # so I really shouldn't care about the contents of the event
+    # but we can still assert that fake_private_say was called with
+    # the right thing...
 
-    # assert isinstance(event, dict)
-    # assert 'message' in event
+    assert isinstance(event, dict)
+    assert 'message' in event
+    message = event['message']
+    assert message['type'] == 'private'
+    # this line errs on testing the mocked zulip API
     # assert 'sender_email' in event['message']
     pass
 
@@ -129,10 +134,45 @@ def _fake_emoji_reply(emoji, event):
     pass
 
 
-# this isn't called by anything inside coffeebot, but is here
-# for completeness
+# this isn't called by anything inside coffeebot (this registers on
+# Zulip's API and dispatches events) , but is here for completeness
+
 def _fake_listen():
     pass
+
+
+def _generate_private_message(sender_email, content):
+    return {
+        "type": "message",
+        "message": {
+            "type": "private",
+            "sender_email": sender_email,
+            "content": content,
+        }
+    }
+
+
+def _generate_public_message(
+        content, sender_full_name='Coffeenot (S2 \'17)',
+        stream='bot-test', subject='arbitrary'):
+    return {
+        "type": "message",
+        "message": {
+            "type": "public",
+            "display_recipient": stream,
+            "subject": subject,
+            "sender_full_name": sender_full_name,
+            "content": ("@**Ahmad Jarara (S2 '17)** your testing "
+                        "sandbox is posting live data") + content,
+        }
+    }
+
+
+def _generate_heartbeat():
+    return {
+        "type": "heartbeat",
+    }
+
 
 @pytest.fixture
 def bot():
@@ -140,6 +180,14 @@ def bot():
     coff.public_say = _fake_public_say
     coff.private_say = _fake_private_say
     coff.emoji_reply = _fake_emoji_reply
+    coff.listen = _fake_listen
+
     fake_client = namedtuple("Fake_client", ["email"])
     coff.client = fake_client("totally-not-bot@recurse.com")
     return coff
+
+
+def test_bot_end_to_end(bot):
+    bot.dispatch(
+        _generate_public_message(
+            "@**coffeebot** ping"))
