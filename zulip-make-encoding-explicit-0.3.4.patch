@@ -1,0 +1,25 @@
+From 230f741126dff8d7a82a73c43aa3f6c68c6fc83a Mon Sep 17 00:00:00 2001
+From: Ahmad Jarara <ajarara@jarmac.org>
+Date: Wed, 13 Sep 2017 19:06:14 -0400
+Subject: [PATCH] Make encoding explicit
+
+---
+ setup.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/setup.py b/setup.py
+index 1932074..87dc2b7 100755
+--- a/setup.py
++++ b/setup.py
+@@ -13,7 +13,7 @@ import itertools
+ def version():
+     # type: () -> str
+     version_py = os.path.join(os.path.dirname(__file__), "zulip", "__init__.py")
+-    with open(version_py) as in_handle:
++    with open(version_py, encoding="utf-8") as in_handle:
+         version_line = next(itertools.dropwhile(lambda x: not x.startswith("__version__"),
+                                                 in_handle))
+     version = version_line.split('=')[-1].strip().replace('"', '')
+-- 
+2.13.0
+
