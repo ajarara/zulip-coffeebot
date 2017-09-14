@@ -472,7 +472,7 @@ class Coffeebot():
             if coll.is_stale() and not coll.closed:
                 # timeout has occured
                 coll.close()
-                coll.public_say(
+                self.public_say(
                     ("This collective has timed out. Coffeebot has chosen "
                      "@**{}** as the maker.\n\nOnce you are done making "
                      "coffee, ping the members of this collective "
