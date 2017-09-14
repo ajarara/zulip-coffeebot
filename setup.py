@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='zulip-coffeebot',
-    version='0.1.1',
+    version='0.1.2',
     description='Coffee for all',
     url='https://github.com/alphor/zulip-coffee',
     author='Ahmad Jarara',
