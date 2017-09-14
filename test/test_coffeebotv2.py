@@ -1,6 +1,6 @@
-from coffeebotv2 import parse, make_where, make_context
-from coffeebotv2 import Where, Context, Collective, Coffeebot
-from coffeebotv2 import NAME
+from coffeebot.coffeebot import parse, make_where, make_context
+from coffeebot.coffeebot import Where, Context, Collective, Coffeebot
+from coffeebot.coffeebot import NAME
 
 from collections import namedtuple
 
@@ -176,7 +176,7 @@ def _generate_heartbeat():
 
 @pytest.fixture
 def bot():
-    coff = Coffeebot(config_file=None)
+    coff = Coffeebot(config=None)
     coff.public_say = _fake_public_say
     coff.private_say = _fake_private_say
     coff.emoji_reply = _fake_emoji_reply

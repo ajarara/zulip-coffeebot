@@ -73,7 +73,7 @@ Close the collective. Only those within it may close it.
 
 Ping all those in the collective (usually to let them know coffee is ready). Only the maker may do this, but there's nothing stopping someone from doing it manually.
 
-Questions? Bugs? Message @**Ahmad Jarara (S2 '17)** or use the source: https://github.com/alphor/zulip-coffeebot
+Questions? Bugs? Message @**Ahmad Jarara (S2'17)** or use the source: https://github.com/alphor/zulip-coffeebot
 """.format(NAME)  # noqa: E501
 
 
@@ -237,6 +237,7 @@ class Collective():
 
 # ==================== Coffeebot, The ====================
 
+
 class Coffeebot():
     """
     Coffeebot's job is to take in requests from the API and attempt to
@@ -265,7 +266,6 @@ class Coffeebot():
             self.client = zulip.Client(**config)
         elif isinstance(config, str):
             self.client = zulip.Client(config_file=config)
-
 
         # besides IO, this is the only state in Coffeebot.
         self.collectives = {}
@@ -439,18 +439,23 @@ class Coffeebot():
                          coll.maker),
                     here)
 
-    # _det is determinism for testing
+    # you go glenn coco
     def candy_cane(self, event, _det=None):
-        # randomly message a heart? emote a heart?
         possibilities = ('message', 'emoji')
+
         if _det in possibilities:
             action = _det
         else:
             action = random.choice(['message', 'emoji'])
 
         if action == 'emoji':
-            # is there a way to send reactions?! :(
-            pass
+            num_emoji = random.randint(1, 7)
+            emoji = random.sample(
+                [valid_emoji for valid_emoji in CANES
+                 if valid_emoji.startswith(":")],
+                num_emoji)
+            for e in emoji:
+                self.emoji_reply(e, event)
         elif action == 'message':
             # love strings are defined below
             self.public_say(random.choice(CANES), event)
@@ -531,7 +536,6 @@ CANES = {
     ":blue_heart:",
     ":two_hearts:",
     ":revolving_hearts:",
-    "<3",
     }
 
 
@@ -566,7 +570,6 @@ def main():
         here = path.abspath(path.dirname(__file__))
         config_file = path.join(here, "zuliprc.conf")
         c = Coffeebot(config=config_file)
-
     c.listen()
 
 
