@@ -51,30 +51,36 @@ COMMAND_REGS = (
 )
 
 HELP_STRING = """
-{0} acts when it is publicly pinged with a command. On private message, Coffeebot will just send this message.
+Help:
 
-- "@{0} init"
+{0} provides a low overhead way to fairly delegate responsibility. {0} organizes collectives, groups of people who want coffee. When a collective has enough members, it closes, selecting someone to make coffee for the whole collective.
 
-Initialize a collective, with you as the leader. The leader has no fancy functionality but kudos to you for taking the initiative!
+{0} acts when it is publicly pinged with a command. On private message, {0} replies with this usage string. {0} tries to be as silent as possible, unless there's an exceptional condition. In the ideal case, {0} only sends two messages per collective, an init confirmation and a message at collective close, delegating the coffee maker. Otherwise, for all valid commands, {0} acknowledges the command with :thumbs_up:
 
-- "@{0} yes"
+Rather than silently drop errors, {0} attempts to explain what went wrong, and suggest a correct request. These suggestions are done by hand.
+
+- "@**{0}** init"
+
+Initialize a collective, with you as the leader. The leader currently has no fancy functionality beyond {0}'s respect.
+
+- "@**{0}** yes"
 
 Join an open collective. By joining you affirm you want coffee, and are willing to make coffee for up to 2 others.
 
-- "@{0} no"
+- "@**{0}** no"
 
 Drop your commitment to the collective :disappointed_relieved:. You renounce your claim to coffee, and thus don't have to risk making it. Once a collective is closed, you cannot leave it.
 
-- "@{0} close"
+- "@**{0}** close"
 
 Close the collective. Only those within it may close it.
 
-- "@{0} ping"
+- "@**{0}** ping"
 
 Ping all those in the collective (usually to let them know coffee is ready). Only the maker may do this, but there's nothing stopping someone from doing it manually.
 
 Questions? Bugs? Message @**Ahmad Jarara (S2'17)** or use the source: https://github.com/alphor/zulip-coffeebot
-""".format(NAME)  # noqa: E501
+""".format(NAME.capitalize())  # noqa: E501
 
 
 # soon enough I should move the default format to a more readable reg
@@ -430,7 +436,7 @@ class Coffeebot():
             elif con.user in coll:
                 coll.close()
                 self.public_say(
-                    ("Coffeebot has deliberated long and hard (almost {} μs!) "
+                    ("Coffeebot has deliberated for almost {} μs "
                      "and has chosen @**{}** as the coffee maker.\n\nOnce you "
                      "are done making coffee, ping the members of this "
                      "collective with \"@**coffeebot** ping\" in this "
@@ -467,11 +473,10 @@ class Coffeebot():
                 # timeout has occured
                 coll.close()
                 coll.public_say(
-                    ("The Coffeebot has grown impatient and has "
-                     "closed this collective and has chosen "
-                     "@**{}** as the maker.\n\nOnce you are done "
-                     "making coffee, ping the members of this collective"
-                     "with `@coffeebot ping`").format(coll.maker),
+                    ("This collective has timed out. Coffeebot has chosen "
+                     "@**{}** as the maker.\n\nOnce you are done making "
+                     "coffee, ping the members of this collective "
+                     "with \"@**coffeebot ping**\"").format(coll.maker),
                     here)
 
     def handle_private_message(self, event):
@@ -496,7 +501,8 @@ class Coffeebot():
             if not command:
                 here = make_where(event)
                 self.public_say(
-                    "I didn't understand that. Message me for usage.",
+                    ("This request wasn't understood. "
+                     "Message me for usage details."),
                     here)
             else:
                 self.command_methods[command](event)
