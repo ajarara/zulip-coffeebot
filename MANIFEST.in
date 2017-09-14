@@ -1,1 +1,1 @@
-include zuliprc.conf
+include coffeebot/zuliprc.conf
