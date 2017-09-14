@@ -261,9 +261,9 @@ class Coffeebot():
 
         self.help_string = help_string
 
-        if isInstance(config, dict):
+        if isinstance(config, dict):
             self.client = zulip.Client(**config)
-        elif isInstance(config, str):
+        elif isinstance(config, str):
             self.client = zulip.Client(config_file=config)
         # else: we're testing and are mocking our client anyway
 
@@ -539,12 +539,12 @@ def main():
     parser = argparse.ArgumentParser(
         description="Runtime configuration for Coffeebot")
 
-    parser.add_argument('api_key', metavar='s0meAP1key', type=str, nargs='?')
-    parser.add_argument('email', metavar='coffeebot-bot@$REALM',
+    parser.add_argument('--api_key', metavar='s0meAP1key', type=str, nargs='?')
+    parser.add_argument('--email', metavar='coffeebot-bot@$REALM',
                         type=str, nargs='?')
-    parser.add_argument('site', metavar='recurse.zulipchat.com',
+    parser.add_argument('--site', metavar='recurse.zulipchat.com',
                         type=str, nargs='?')
-    parser.add_argument('conf_file', metavar='zuliprc.conf',
+    parser.add_argument('--config_file', metavar='zuliprc.conf',
                         type=str, nargs='?')
     args = parser.parse_args()
 
@@ -554,7 +554,7 @@ def main():
         print(("api_key, email, and site are all mutually required."
                "\n You entered:\n{}").format(pprint(args)))
         exit(1)
-    elif args.conf_file:
+    elif args.config_file:
         c = Coffeebot(args.config_file)
 
     c.listen()
