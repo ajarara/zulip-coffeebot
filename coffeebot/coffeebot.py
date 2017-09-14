@@ -73,7 +73,7 @@ Close the collective. Only those within it may close it.
 
 Ping all those in the collective (usually to let them know coffee is ready). Only the maker may do this, but there's nothing stopping someone from doing it manually.
 
-Questions? Bugs? Message @**Ahmad Jarara** or use the source: https://github.com/alphor/zulip-coffeebot
+Questions? Bugs? Message @**Ahmad Jarara (S2 '17)** or use the source: https://github.com/alphor/zulip-coffeebot
 """.format(NAME)  # noqa: E501
 
 
@@ -265,10 +265,6 @@ class Coffeebot():
             self.client = zulip.Client(**config)
         elif isinstance(config, str):
             self.client = zulip.Client(config_file=config)
-        elif config is None:
-            here = path.abspath(path.dirname(__file__))
-            self.client = zulip.Client(
-                config_file=path.join(here, "zuliprc.conf"))
 
 
         # besides IO, this is the only state in Coffeebot.
@@ -553,15 +549,23 @@ def main():
     args = parser.parse_args()
 
     if args.api_key and args.email and args.site:
-        c = Coffeebot(config=dict(args))
+        c = Coffeebot(config={
+            'api_key': args.api_key,
+            'email':   args.email,
+            'site':    args.site,
+        })
     elif args.api_key or args.email or args.site:
         print(("api_key, email, and site are all mutually required."
                "\n You entered:\n{}").format(pprint(args)))
         exit(1)
     elif args.config_file:
-        c = Coffeebot(args.config_file)
+        # string
+        c = Coffeebot(config=args.config_file)
     else:
-        c = Coffeebot()
+        # default
+        here = path.abspath(path.dirname(__file__))
+        config_file = path.join(here, "zuliprc.conf")
+        c = Coffeebot(config=config_file)
 
     c.listen()
 
