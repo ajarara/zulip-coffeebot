@@ -2,9 +2,9 @@ from setuptools import setup, find_packages
 
 setup(
     name='zulip-coffeebot',
-    version='0.1.2',
+    version='0.1.3',
     description='Coffee for all',
-    url='https://github.com/alphor/zulip-coffee',
+    url='https://github.com/alphor/zulip-coffeebot',
     author='Ahmad Jarara',
     author_email='ajarara94@gmail.com',
     license='MIT',
@@ -18,7 +18,7 @@ setup(
         'Programming Language :: Python :: 3.5',
         ],
     keywords='zulip coffee',
-    packages=find_packages(exclude=['tests']),
+    packages=['coffeebot'],
     extras_require={
         'test': ['pytest'],
     },
