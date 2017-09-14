@@ -12,6 +12,6 @@ in
     description = "Coffee for all";
     wantedBy = [ "multi-user.target" ];
     serviceConfig.ExecStart =
-      "sh -c '${coffeebot}/bin/coffeebot'";
+      "${coffeebot}/bin/coffeebot";
     };
   }

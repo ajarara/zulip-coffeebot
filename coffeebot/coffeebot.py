@@ -265,7 +265,11 @@ class Coffeebot():
             self.client = zulip.Client(**config)
         elif isinstance(config, str):
             self.client = zulip.Client(config_file=config)
-        # else: we're testing and are mocking our client anyway
+        elif config is None:
+            here = path.abspath(path.dirname(__file__))
+            self.client = zulip.Client(
+                config_file=path.join(here, "zuliprc.conf"))
+
 
         # besides IO, this is the only state in Coffeebot.
         self.collectives = {}
@@ -556,6 +560,8 @@ def main():
         exit(1)
     elif args.config_file:
         c = Coffeebot(args.config_file)
+    else:
+        c = Coffeebot()
 
     c.listen()
 
