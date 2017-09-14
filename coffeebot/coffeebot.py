@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta
 from collections import namedtuple
+from pprint import pprint
 from os import path
+import argparse
 import random
 import re
 
@@ -240,7 +242,7 @@ class Coffeebot():
     Coffeebot's job is to take in requests from the API and attempt to
     execute them in the correct collective.
     """
-    def __init__(self, config_file="zuliprc.conf", name=NAME,
+    def __init__(self, config=None, name=NAME,
                  help_string=HELP_STRING):
 
         # because public messages are the point of interaction, this is
@@ -259,10 +261,11 @@ class Coffeebot():
 
         self.help_string = help_string
 
-        if config_file:
-            here = path.abspath(path.dirname(__file__))
-            self.client = zulip.Client(
-                config_file=path.join(here, config_file))
+        if isInstance(config, dict):
+            self.client = zulip.Client(**config)
+        elif isInstance(config, str):
+            self.client = zulip.Client(config_file=config)
+        # else: we're testing and are mocking our client anyway
 
         # besides IO, this is the only state in Coffeebot.
         self.collectives = {}
@@ -533,7 +536,27 @@ CANES = {
 
 
 def main():
-    c = Coffeebot()
+    parser = argparse.ArgumentParser(
+        description="Runtime configuration for Coffeebot")
+
+    parser.add_argument('api_key', metavar='s0meAP1key', type=str, nargs='?')
+    parser.add_argument('email', metavar='coffeebot-bot@$REALM',
+                        type=str, nargs='?')
+    parser.add_argument('site', metavar='recurse.zulipchat.com',
+                        type=str, nargs='?')
+    parser.add_argument('conf_file', metavar='zuliprc.conf',
+                        type=str, nargs='?')
+    args = parser.parse_args()
+
+    if args.api_key and args.email and args.site:
+        c = Coffeebot(config=dict(args))
+    elif args.api_key or args.email or args.site:
+        print(("api_key, email, and site are all mutually required."
+               "\n You entered:\n{}").format(pprint(args)))
+        exit(1)
+    elif args.conf_file:
+        c = Coffeebot(args.config_file)
+
     c.listen()
 
 
