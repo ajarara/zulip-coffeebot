@@ -17,10 +17,10 @@ let
   };
 in buildPythonPackage rec {
   pname = "zulip-coffeebot";
-  version = "0.1.0";
+  version = "0.1.1";
   name = "${pname}-${version}";
   src = ./. + "${optionalString local "/dist"}/${name}.tar.gz";
-  propagatedBuildInputs = [ zulip ];
+  propagatedBuildInputs = [ zulip ];  # pytest?
 }
   
 
