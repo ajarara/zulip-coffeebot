@@ -51,17 +51,20 @@ COMMAND_REGS = (
 )
 
 HELP_STRING = """
-Help:
 
-{0} provides a low overhead way to fairly delegate responsibility. {0} organizes collectives, groups of people who want coffee. When a collective has enough members, it closes, selecting someone to make coffee for the whole collective.
+Overview:
+
+{0} organizes collectives, groups of people who want coffee. When a collective has enough members, it closes, selecting someone to make coffee for the whole collective.
 
 {0} acts when it is publicly pinged with a command. On private message, {0} replies with this usage string. {0} tries to be as silent as possible, unless there's an exceptional condition. In the ideal case, {0} only sends two messages per collective, an init confirmation and a message at collective close, delegating the coffee maker. Otherwise, for all valid commands, {0} acknowledges the command with :thumbs_up:
 
-Rather than silently drop errors, {0} attempts to explain what went wrong, and suggest a correct request. These suggestions are done by hand.
+Rather than silently drop errors, {0} attempts to explain what went wrong, and suggest a correct request.
+
+Usage:
 
 - "@**{0}** init"
 
-Initialize a collective, with you as the leader. The leader currently has no fancy functionality beyond {0}'s respect.
+Initialize a collective, with you as the leader. The leader currently has no fancy functionality beyond {0}'s utmost respect.
 
 - "@**{0}** yes"
 
@@ -77,9 +80,14 @@ Close the collective. Only those within it may close it.
 
 - "@**{0}** ping"
 
-Ping all those in the collective (usually to let them know coffee is ready). Only the maker may do this, but there's nothing stopping someone from doing it manually.
+Ping all those in the collective (this should only be used to signify coffee is ready, as that's what {0} indicates). Only the maker may do this, but there's nothing stopping someone from pinging everyone manually.
 
-Questions? Bugs? Message @**Ahmad Jarara (S2'17)** or use the source: https://github.com/alphor/zulip-coffeebot
+- "@**{0}** state"
+
+Publicly say the state of the collective. This includes the members inside, the time the collective was created, and the approximate time left until the collective timeouts.
+
+
+Questions? Bugs? Message @**Ahmad Jarara (S2'17)** or seek the source: https://github.com/alphor/zulip-coffeebot
 """.format(NAME.capitalize())  # noqa: E501
 
 
@@ -492,11 +500,6 @@ class Coffeebot():
         message = event['message']
         if message['is_mentioned']:
             command = parse(message['content'])
-
-            # if (not command and
-            #         re.match(".*I\slove\syou\s{}.*".format(NAME),
-            #                  message['content'])):
-            #     command = 'love'
 
             if not command:
                 here = make_where(event)
