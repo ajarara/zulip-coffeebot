@@ -1,6 +1,29 @@
 
 # Zulip-coffeebot
-Currently this bot runs on a cold VM. If you'd like to install this on your zulip instance, probably follow https://zulip.readthedocs.io/en/latest/bots-guide.html
+
+Usage: 
+```
+usage: coffeebot [-h] [--api_key [s0meAP1key]]
+                 [--email [coffeebot-bot@$REALM]]
+                 [--site [recurse.zulipchat.com]]
+                 [--config_file [zuliprc.conf]]
+
+Runtime configuration for Coffeebot
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --api_key [s0meAP1key]
+  --email [coffeebot-bot@$REALM]
+  --site [recurse.zulipchat.com]
+  --config_file [zuliprc.conf]
+```
+
+To install on a NixOS instance, add a file called `zuliprc.conf` to the coffeebot directory, containing your API key, bot email, and zulip realm site [as shown here](https://zulipchat.com/api/). Then, from the root of the repo, `make package` and rsync `dist` to wherever you'd like on the remote machine. Add whereever `coffeebot.nix` is to the imports in your configuration.nix, and rebuild, it will handle the rest.
+
+If you don't want to use a file for your auth details, you can also supply your API key, email, and site directly to the coffeebot.nix file in the ExecStart string using the above usage. It's recommended to keep these secrets in a file external to the config, in a .gitignore'd file, particularly if you're pushing your changes publicly.
+
+This package is not available on Pypi.
+
 
 # Spec
 This section documents how the Coffeebot behaves. Why a spec? See [Joel Spolsky's four part series](https://www.joelonsoftware.com/2000/10/02/painless-functional-specifications-part-1-why-bother/).
@@ -21,7 +44,31 @@ Please see the [functional details section](#functional-details) for more.
 
 ## Functional details
 
-Coffeebot listens in on a set of channels. When mentioned with the phrase `@coffeebot init` in one of the channels, Coffeebot will first check to see if a collective is ongoing. As of now, Coffeebot will only support one collective at a time. If there is one, then Coffeebot will reply to the attempted request to init a collective with a failure message. If there isn't, a collective will be spawned, with the person who initialized as the collective leader. There is no special behavior for the leader currently. 
+Coffeebot registers an event hook on 'heartbeats' and 'messages'. It feeds these events into a generic dispatch function that checks the type of the event and sends it off to handlers. Given an event and a reference to the API client (the attribute inside Coffeebot is literally called `client`), these handlers can do arbitrary things. The decision of passing the event unchanged to handlers provides flexibility in program extension and maintenance.
+
+### Ideal User Story
+Users A, B, C want delicious coffee. Coffeebot is listening on the #coffee zulip stream.
+
+User A posts `@**Coffeebot** init` to a thread named "Completely arbitrary"
+Coffeebot responds by creating a collective in memory, and sending a confirmation message. The exact message can be found in the init_collective method of the Coffeebot class.
+
+User B also would like coffee, so they join the collective with `@**coffebot** yes`. Coffeebot acknowledges this with a thumbs up.
+
+Similarly, User C sees all this action and joins in, and Coffeebot acknowledges this too with a thumbs up. Since the default collective size is 3, immediately after Coffeebot closes the collective, selects a maker, and announces that maker.
+
+### State transitions
+Collectives go from non-existent -> open -> closed. All open collectives are uniquely identified by the stream and thread they were created in.
+
+- non-existent
+
+`@coffeebot init` takes a collective from non-existent -> open
+`@coffeebot state` shows the user the status of the collective it has in memory, it does not read the thread to determine this information. This means that if Coffeebot is restarted, it will lose all context. This is a flaw.
+
+All other commands will yield some message directing users to the appropriate action, in this case initialization.
+
+- open
+
+
 
 People are then free to request coffee with `@coffeebot yes`, undoing with `@coffeebot no`. Coffeebot will continue to take requests until one of these conditions are satisfied:
 - 15 minutes have passed since the collective has been initialized
