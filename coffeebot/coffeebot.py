@@ -221,6 +221,9 @@ class Collective():
     def is_stale(self):
         return datetime.now() - self.time_created >= self.timeout_in_mins
 
+    def is_full(self):
+        return len(self) >= self.max_size
+
     def ping_string(self):
         # this should only be accessed when closed.
         assert self.closed
@@ -366,6 +369,16 @@ class Coffeebot():
             else:
                 coll.add(con.user)
                 self.emoji_reply("thumbs_up", event)
+                if coll.is_full():
+                    coll.close()
+                    coll.public_say(
+                        ("This collective has filled up and is now closed. "
+                         "Coffeebot has chosen {} as the coffee maker.\n\n "
+                         "Once you are done making coffee, ping the members "
+                         "of this collective with \"@**coffeebot ping**\" "
+                         "in this thread.").format(
+                             coll.maker),
+                        here)
         else:
             self.public_say(
                 ("There is no recently active collective in this "
