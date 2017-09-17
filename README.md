@@ -1,7 +1,5 @@
-
 # Zulip-coffeebot
 
-Usage: 
 ```
 usage: coffeebot [-h] [--api_key [s0meAP1key]]
                  [--email [coffeebot-bot@$REALM]]
