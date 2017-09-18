@@ -480,7 +480,7 @@ class Coffeebot():
         if action == 'emoji':
             num_emoji = random.randint(1, 7)
             emoji = random.sample(
-                [valid_emoji for valid_emoji in CANES
+                [valid_emoji for valid_emoji in CANES_EMOJI
                  if valid_emoji.startswith(":")],
                 num_emoji)
             for e in emoji:
@@ -531,12 +531,12 @@ class Coffeebot():
         Dispatch event based on its type, sending it to the correct handler.
         """
         switch = event['type']
-        print("Obtained event: {}".format(event))
         if switch == 'heartbeat':
             self.handle_heartbeat(event)
 
         # never reply to thyself, or other bots.
         elif switch == 'message' and not self.is_bot_message(event):
+            print("Obtained event: {}".format(event))
             kind = event['message']['type']
             if kind == 'private':
                 self.handle_private_message(event)
@@ -555,13 +555,24 @@ CANES = (
      "     |\n"
      "    /_\\"),
     ":heart:",
-    ":hearts",
+    ":hearts:",
     ":yellow_heart:",
     ":green_heart:",
     ":blue_heart:",
     ":two_hearts:",
     ":revolving_hearts:",
     )
+
+CANES_EMOJI = (
+    ":heart:",
+    ":hearts:",
+    ":yellow_heart:",
+    ":green_heart:",
+    ":blue_heart:",
+    ":two_hearts:",
+    ":revolving_hearts:",
+)
+
 
 
 def main():
