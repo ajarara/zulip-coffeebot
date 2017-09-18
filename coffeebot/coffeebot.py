@@ -35,7 +35,9 @@ COMMAND_REGS = (
         # "out",
     )),
     ('state', (
-        "state|(?:us)?",
+        "state",
+        "stat",
+        "status",
     )),
     ('ping', (
         "ping",
