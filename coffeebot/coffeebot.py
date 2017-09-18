@@ -181,7 +181,7 @@ class Collective():
     """
     Collectives are groups of people interested in making coffee.
     """
-    def __init__(self, leader, max_size=3, timeout_in_mins=15):
+    def __init__(self, leader, max_size=3, timeout_in_mins=20):
         # TODO: Check max_size and timeout_in_mins for reasonable values
         # when arguments are exposed
         self.leader = leader
@@ -479,10 +479,7 @@ class Coffeebot():
 
         if action == 'emoji':
             num_emoji = random.randint(1, 7)
-            emoji = random.sample(
-                [valid_emoji for valid_emoji in CANES_EMOJI
-                 if valid_emoji.startswith(":")],
-                num_emoji)
+            emoji = random.sample(CANES_EMOJI, num_emoji)
             for e in emoji:
                 self.emoji_reply(e, event)
         elif action == 'message':
@@ -572,7 +569,6 @@ CANES_EMOJI = (
     "two_hearts",
     "revolving_hearts",
 )
-
 
 
 def main():
