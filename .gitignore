@@ -2,4 +2,7 @@ zuliprc.conf
 .cache
 .hypothesis
 dist
+zulip_coffeebot.egg-info
 zulip_coffee.egg-info
+
+result

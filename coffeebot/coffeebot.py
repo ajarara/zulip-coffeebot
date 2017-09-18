@@ -564,13 +564,13 @@ CANES = (
     )
 
 CANES_EMOJI = (
-    ":heart:",
-    ":hearts:",
-    ":yellow_heart:",
-    ":green_heart:",
-    ":blue_heart:",
-    ":two_hearts:",
-    ":revolving_hearts:",
+    "heart",
+    "hearts",
+    "yellow_heart",
+    "green_heart",
+    "blue_heart",
+    "two_hearts",
+    "revolving_hearts",
 )
 
 
