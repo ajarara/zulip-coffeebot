@@ -4,27 +4,27 @@ Coffeebot invites people for coffee. When enough people want coffee, Coffeebot r
 
 These groups of people are referred to by Coffeebot as collectives.
 
-- "\@\*\*Coffeebot** init"
+- "@**Coffeebot** init"
 
 Initialize a collective, with you as the leader. The leader currently has no fancy functionality beyond {0}'s utmost respect.
 
-- "\@\*\*Coffeebot** yes"
+- "@**Coffeebot** yes"
 
 Join an open collective. By joining you affirm you want coffee, and are willing to make coffee for up to 2 others.
 
-- "\@\*\*Coffeebot** no"
+- "@**Coffeebot** no"
 
 Drop your commitment to the collective :disappointed_relieved:. You renounce your claim to coffee, and thus don't have to risk making it. Once a collective is closed, you cannot leave it.
 
-- "\@\*\*Coffeebot** close"
+- "@**Coffeebot** close"
 
 Close the collective. Only those within it may close it.
 
-- "\@\*\*Coffeebot** ping"
+- "@**Coffeebot** ping"
 
 Ping all those in the collective (this should only be used to signify coffee is ready, as that's what {0} indicates). Only the maker may do this, but there's nothing stopping someone from pinging everyone manually.
 
-- "\@\*\*Coffeebot** state"
+- "@**Coffeebot** state"
 
 Publicly say the state of the collective. This includes the members inside, the time the collective was created, and the approximate time left until the collective timeouts.
 
