@@ -549,7 +549,7 @@ class Coffeebot():
             event_types=['heartbeat', 'message'])
 
 
-CANES = {
+CANES = (
     ("    \\o/\n"
      "     |\n"
      "    /_\\"),
@@ -560,7 +560,7 @@ CANES = {
     ":blue_heart:",
     ":two_hearts:",
     ":revolving_hearts:",
-    }
+    )
 
 
 def main():

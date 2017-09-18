@@ -154,6 +154,7 @@ def _generate_private_message(sender_email, content):
 
 def _generate_public_message(
         content, sender_full_name='Coffeenot (S2 \'17)',
+        sender_email='Coffeenot@fakerealm.com',
         stream='bot-test', subject='arbitrary'):
     return {
         "type": "message",
@@ -162,6 +163,7 @@ def _generate_public_message(
             "display_recipient": stream,
             "subject": subject,
             "sender_full_name": sender_full_name,
+            "sender_email": sender_email,
             "content": ("@**Ahmad Jarara (S2 '17)** your testing "
                         "sandbox is posting live data") + content,
         }
