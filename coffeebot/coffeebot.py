@@ -477,7 +477,6 @@ class Coffeebot():
         else:
             action = random.choice(['message', 'emoji'])
 
-        where = Where(event)
         if action == 'emoji':
             num_emoji = random.randint(1, 7)
             emoji = random.sample(
@@ -488,6 +487,7 @@ class Coffeebot():
                 self.emoji_reply(e, event)
         elif action == 'message':
             # love strings are defined below
+            where = make_where(event)
             self.public_say(random.choice(CANES), where)
 
     # ==================== dispatch ====================
