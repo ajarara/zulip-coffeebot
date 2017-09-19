@@ -17,7 +17,7 @@ let
   };
 in buildPythonPackage rec {
   pname = "zulip-coffeebot";
-  version = "0.3.4";
+  version = "0.3.5";
   name = "${pname}-${version}";
   src = ./. + "${optionalString local "/dist"}/${name}.tar.gz";
   propagatedBuildInputs = [ zulip ];  # pytest?

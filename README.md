@@ -86,15 +86,18 @@ Similarly, User C sees all this action and joins in, and Coffeebot acknowledges 
 ### State transitions
 Collectives go from non-existent -> open -> closed. All open collectives are uniquely identified by the stream and thread they were created in.
 
+`@coffeebot state` shows the user the status of the collective it has in memory, it does not read the thread to determine this information. This means that if Coffeebot is restarted, it will lose all context. This is a flaw.
+
 - non-existent
 
 `@coffeebot init` takes a collective from non-existent -> open
-`@coffeebot state` shows the user the status of the collective it has in memory, it does not read the thread to determine this information. This means that if Coffeebot is restarted, it will lose all context. This is a flaw.
 
 All other commands will yield some message directing users to the appropriate action, in this case initialization.
 
 - open
 
+`@coffeebot close` takes a collective from open -> close
+`@coffeebot state` shows the 
 
 
 People are then free to request coffee with `@coffeebot yes`, undoing with `@coffeebot no`. Coffeebot will continue to take requests until one of these conditions are satisfied:
@@ -109,7 +112,7 @@ Once either of these conditions occur a few things will happen:
 
 After the coffee is made, the maker may ping all those who are in the collective they are in with `@coffeebot ping`, within 2 hours. Only the maker can perform this ping (there is nothing stopping anyone anywhere from pinging manually). This is to make the responsibility concrete. In the case that the maker has been the maker of a previous collective that occurred within the last two hours, Coffeebot will ping all those that are in the most recent.
 
-At any point in this event loop, anyone in a collective or otherwise may message `@Coffeebot love` or `I love you @Coffeebot` for a random reciprocating emoji. Coffeebot appreciates your gratitude.
+At any point in this event loop, anyone in a collective or otherwise may message `@Coffeebot love` for a random reciprocating emoji. Coffeebot appreciates your gratitude.
 
 
 ## Technical details

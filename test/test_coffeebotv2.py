@@ -179,7 +179,9 @@ def _generate_heartbeat():
 @pytest.fixture
 def bot():
     coff = Coffeebot(config=None)
+    
     coff.public_say = _fake_public_say
+    
     coff.private_say = _fake_private_say
     coff.emoji_reply = _fake_emoji_reply
     coff.listen = _fake_listen

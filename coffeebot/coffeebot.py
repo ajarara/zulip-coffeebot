@@ -368,7 +368,7 @@ class Coffeebot():
                     # notify user of all open collectives?
                     ("This collective is closed.  Start your own with "
                      "\"@**coffeebot** init\" \n\nFor further details, "
-                     "send me a private message."), event)
+                     "send me a private message."), here)
             elif con.user in coll.users:
                 self.public_say(
                     ("You're already in this collective. Coffeebot "
@@ -614,7 +614,7 @@ def main():
         c.client.send_message({
             "type": "private",
             "to": "ajarara94@gmail.com",
-            "content": "Coffeebot error: {}".format(e.args)
+            "content": "Coffeebot error: {}".format(e)
         })
 
 
