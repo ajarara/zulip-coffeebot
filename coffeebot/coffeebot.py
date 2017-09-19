@@ -56,7 +56,7 @@ HELP_STRING = """
 
 Overview:
 
-{0} organizes collectives, groups of people who want coffee. When a collective has enough members, it closes, selecting someone to make coffee for the whole collective.
+{0} organizes collectives, groups of people who want coffee. When a collective has enough members (or 15 minutes have passed), it closes, selecting someone to make coffee for the whole collective.
 
 {0} acts when it is publicly pinged with a command. On private message, {0} replies with this usage string. {0} tries to be as silent as possible, unless there's an exceptional condition. In the ideal case, {0} only sends two messages per collective, an init confirmation and a message at collective close, delegating the coffee maker. Otherwise, for all valid commands, {0} acknowledges the command with :thumbs_up:
 
@@ -87,7 +87,6 @@ Ping all those in the collective (this should only be used to signify coffee is 
 - "@**{0}** state"
 
 Publicly say the state of the collective. This includes the members inside, the time the collective was created, and the approximate time left until the collective timeouts.
-
 
 Questions? Bugs? Message @**Ahmad Jarara (S2'17)** or seek the source: https://github.com/alphor/zulip-coffeebot
 """.format(NAME.capitalize())  # noqa: E501
@@ -236,10 +235,13 @@ class Collective():
         out = []
         out.append("Members: {}".format(
             ", ".join(self.users)))
+
         out.append("Positions left: {}".format(
             self.max_size - len(self.users)))
+
         out.append("Time created: {:%A, %I:%M:%S %p}".format(
             self.time_created))
+
         if self.closed:
             out.append("Status: Closed")
         else:
@@ -347,7 +349,10 @@ class Coffeebot():
             self.public_say(
                 ("You've initialized a coffee collective! :tada:\n\n "
                  "This collective can take {} other members (you can join by "
-                 "typing \"@**coffeebot** yes\" or \"@**coffeebot** join\"). "
+                 "typing \"@**coffeebot** yes\" or \"@**coffeebot** join\")."
+                 "\n\nA collective is a group of people who want coffee. When "
+                 "enough people join, the collective closes, selecting "
+                 "someone randomly to make it.\n\n"
                  "For more usage details, send me a private message.").format(
                      new_coll.max_size - 1),
                 here)

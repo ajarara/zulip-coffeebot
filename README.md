@@ -1,12 +1,10 @@
-# Zulip usage
+# What is Coffeebot?
 
-Coffeebot invites people for coffee. When enough people want coffee, Coffeebot randomly delegates someone from the group of people to make it happen.
-
-These groups of people are referred to by Coffeebot as collectives.
+Coffeebot is a zulip bot that invites people for coffee. When enough people want coffee, Coffeebot randomly delegates someone from the group of people to make it happen. 
 
 - "@**Coffeebot** init"
 
-Initialize a collective, with you as the leader. The leader currently has no fancy functionality beyond {0}'s utmost respect.
+Initialize a collective (a group of people who want coffee), with you as the leader. The leader currently has no fancy functionality beyond Coffeebot's utmost respect.
 
 - "@**Coffeebot** yes"
 
