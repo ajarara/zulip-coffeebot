@@ -20,6 +20,7 @@ COMMAND_REGS = (
     ('init', (
         "init",
         "start",
+        "new",
         # r"@**coffeebot** coffee",
     )),
     ('add', (
@@ -378,7 +379,7 @@ class Coffeebot():
                 self.emoji_reply("thumbs_up", event)
                 if coll.is_full():
                     coll.close()
-                    coll.public_say(
+                    self.public_say(
                         ("This collective has filled up and is now closed. "
                          "Coffeebot has chosen {} as the coffee maker.\n\n "
                          "Once you are done making coffee, ping the members "

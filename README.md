@@ -20,7 +20,7 @@ Close the collective. Only those within it may close it.
 
 - "@**Coffeebot** ping"
 
-Ping all those in the collective (this should only be used to signify coffee is ready, as that's what {0} indicates). Only the maker may do this, but there's nothing stopping someone from pinging everyone manually.
+Ping all those in the collective (this should only be used to signify coffee is ready, as that's what Coffeebot indicates). Only the maker may do this, but there's nothing stopping someone from pinging everyone manually.
 
 - "@**Coffeebot** state"
 
