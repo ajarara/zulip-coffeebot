@@ -608,7 +608,14 @@ def main():
         here = path.abspath(path.dirname(__file__))
         config_file = path.join(here, "zuliprc.conf")
         c = Coffeebot(config=config_file)
-    c.listen()
+    try:
+        c.listen()
+    except Exception as e:
+        c.client.send_message({
+            "type": "private",
+            "to": "ajarara94@gmail.com",
+            "content": "Coffeebot error: {}".format(e.args)
+        })
 
 
 if __name__ == '__main__':
