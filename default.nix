@@ -6,7 +6,7 @@ let
   optionalString = cond: str: if cond then str else "";
   zulip = buildPythonPackage rec {
     pname = "zulip";
-    version = "0.3.7";
+    version = "0.3.4";
     name = "${pname}-${version}";
     src = fetchPypi {
       inherit pname version;
@@ -17,7 +17,7 @@ let
   };
 in buildPythonPackage rec {
   pname = "zulip-coffeebot";
-  version = "0.3.6";
+  version = "0.3.7";
   name = "${pname}-${version}";
   src = ./. + "${optionalString local "/dist"}/${name}.tar.gz";
   propagatedBuildInputs = [ zulip ];  # pytest?
