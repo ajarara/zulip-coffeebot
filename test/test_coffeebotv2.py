@@ -12,6 +12,7 @@ import pytest
 def test_correct():
     assert True
 
+
 @given(text())
 def test_hypothesis(s):
     def ref(x):
@@ -70,6 +71,7 @@ def test_coll_init(leader):
     coll = Collective(leader)
     assert leader in coll
     assert len(coll) == 1
+
 
 @given(text())
 def test_coll_immediate_leave(leader):

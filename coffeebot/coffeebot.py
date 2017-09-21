@@ -21,17 +21,20 @@ COMMAND_REGS = (
         "init",
         "start",
         "new",
+        "create",
         # r"@**coffeebot** coffee",
     )),
     ('add', (
         "yes",
         "join",
+        "add",
         # this is close enough to init that it is worth dropping for now
         # "in(?!i)",
     )),
     ('remove', (
         "no",
         "leave",
+        "remove",
         # since this is the inverse of in, not enabled. bad UX otherwise
         # "out",
     )),
@@ -51,6 +54,9 @@ COMMAND_REGS = (
     ('love', (
         "love",
     )),
+    ('help', (
+        "help",
+        ))
 )
 
 HELP_STRING = """
@@ -280,6 +286,7 @@ class Coffeebot():
             'ping':   self.ping_collective,
             'close':  self.close_collective,
             'love':   self.candy_cane,
+            'help':   self.send_help,
         }
 
         self.help_string = help_string
@@ -354,7 +361,8 @@ class Coffeebot():
                  "\n\nA collective is a group of people who want coffee. When "
                  "enough people join, the collective closes, selecting "
                  "someone randomly to make it.\n\n"
-                 "For more usage details, send me a private message.").format(
+                 "For more usage details, send me a private message or type"
+                 "\"@**coffeebot help**\".").format(
                      new_coll.max_size - 1),
                 here)
 
@@ -492,6 +500,9 @@ class Coffeebot():
             # love strings are defined below
             where = make_where(event)
             self.public_say(random.choice(CANES), where)
+
+    def send_help(self, event):
+        self.private_say(event)
 
     # ==================== dispatch ====================
     def handle_heartbeat(self, beat):
