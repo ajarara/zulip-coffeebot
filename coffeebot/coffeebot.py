@@ -53,6 +53,8 @@ COMMAND_REGS = (
     )),
     ('love', (
         "love",
+        r":heart\w*:"
+        r":heart\w*:"
     )),
     ('help', (
         "help",
@@ -67,7 +69,7 @@ Overview:
 
 {0} acts when it is publicly pinged with a command. On private message, {0} replies with this usage string. {0} tries to be as silent as possible, unless there's an exceptional condition. In the ideal case, {0} only sends two messages per collective, an init confirmation and a message at collective close, delegating the coffee maker. Otherwise, for all valid commands, {0} acknowledges the command with :thumbs_up:
 
-Rather than silently drop errors, {0} attempts to explain what went wrong, and suggest a correct request.
+Rather than silently drop errors, {0} attempts to explain what went wrong, and suggests a correct request.
 
 Usage:
 
@@ -94,6 +96,8 @@ Ping all those in the collective (this should only be used to signify coffee is 
 - "@**{0}** state"
 
 Publicly say the state of the collective. This includes the members inside, the time the collective was created, and the approximate time left until the collective timeouts.
+
+In the event of multiple commands sent in a single message, {0} will use the first one.
 
 Questions? Bugs? Message @**Ahmad Jarara (S2'17)** or seek the source: https://github.com/alphor/zulip-coffeebot
 """.format(NAME.capitalize())  # noqa: E501
@@ -313,12 +317,12 @@ class Coffeebot():
         })
 
     # we always send a help_string, independent of context.
-    def private_say(self, event):
+    def private_say(self, content, event):
         message = event['message']
         self.client.send_message({
             "type": "private",
             "to": message['sender_email'],
-            "content": self.help_string,
+            "content": content,
         })
 
     # not available in the zulip API.
@@ -376,7 +380,8 @@ class Coffeebot():
                     # notify user of all open collectives?
                     ("This collective is closed.  Start your own with "
                      "\"@**coffeebot** init\" \n\nFor further details, "
-                     "send me a private message."), here)
+                     "say \"@**coffeebot** help\" or send me a private "
+                     "message."), here)
             elif con.user in coll.users:
                 self.public_say(
                     ("You're already in this collective. Coffeebot "
@@ -502,7 +507,7 @@ class Coffeebot():
             self.public_say(random.choice(CANES), where)
 
     def send_help(self, event):
-        self.private_say(event)
+        self.private_say(self.help_string, event)
 
     # ==================== dispatch ====================
     def handle_heartbeat(self, beat):
@@ -524,7 +529,7 @@ class Coffeebot():
 
         Coffeebot doesn't do insider coffee making.
         """
-        self.private_say(event)
+        self.private_say(self.help_string, event)
 
     def handle_public_message(self, event):
         message = event['message']

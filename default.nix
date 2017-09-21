@@ -6,7 +6,7 @@ let
   optionalString = cond: str: if cond then str else "";
   zulip = buildPythonPackage rec {
     pname = "zulip";
-    version = "0.3.4";
+    version = "0.3.7";
     name = "${pname}-${version}";
     src = fetchPypi {
       inherit pname version;
