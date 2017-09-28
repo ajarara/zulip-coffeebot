@@ -57,7 +57,7 @@ This section documents how the Coffeebot behaves. Why a spec? See [Joel Spolsky'
 
 ## Overview
 
-This bot unites people within a zulip organization in physical proximity with beloved coffee in an efficient, low maintenance way. Coffeebot organizes collectives, providing an interface for those who want coffee and delegates a coffee maker for the collective randomly. 
+This bot unites people within a zulip organization in physical proximity with beloved coffee in an efficient, low maintenance way. Coffeebot organizes collectives, providing an interface for those who want coffee to interact with collectives and delegates a coffee maker for the collective randomly, once certain conditions have been met.
 
 Users can interact with coffeebot in the following ways.
 - `@Coffeebot init` - Initialize a collective
