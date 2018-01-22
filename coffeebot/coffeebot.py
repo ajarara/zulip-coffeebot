@@ -533,7 +533,7 @@ class Coffeebot():
 
     def handle_public_message(self, event):
         message = event['message']
-        if message['is_mentioned']:
+        if 'is_mentioned' in message and message['is_mentioned']:
             command = parse(message['content'])
 
             if not command:
